@@ -1,7 +1,7 @@
 # 01 — Meddy App Overview
 
 ## 1. Product Summary
-**Meddy** is a modern, intuitive, and empathetic mobile health companion built with React Native and Expo SDK 54. It is designed to take the friction and anxiety out of medication adherence for individuals and family caregivers.
+**Meddy** is a modern, intuitive, and empathetic mobile health companion built with React Native and Expo SDK 57. It is designed to take the friction and anxiety out of medication adherence for individuals and family caregivers.
 
 Whether managing personal prescriptions, daily vitamins, or coordinating the treatment regimen of aging parents, children, or loved ones, Meddy ensures medicines are taken at the right time, in the right dose, with complete accountability through a shared **Care Circle**.
 

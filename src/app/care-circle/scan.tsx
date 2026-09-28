@@ -128,7 +128,7 @@ export default function ScanCareCircleScreen() {
           </View>
         ) : (
           <CameraView
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             facing="back"
             enableTorch={torch}
             barcodeScannerSettings={{

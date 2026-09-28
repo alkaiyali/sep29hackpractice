@@ -54,7 +54,9 @@ function generateChimeWavUri(frequency: number, durationSec: number = 1.0): stri
   const base64 =
     typeof btoa !== 'undefined'
       ? btoa(binary)
-      : Buffer.from(binary, 'binary').toString('base64');
+      : typeof (globalThis as Record<string, any>).Buffer !== 'undefined'
+      ? (globalThis as Record<string, any>).Buffer.from(binary, 'binary').toString('base64')
+      : '';
 
   return 'data:audio/wav;base64,' + base64;
 }

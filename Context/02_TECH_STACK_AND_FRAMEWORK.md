@@ -4,9 +4,9 @@
 
 | Layer | Selected Technology | Version / Specification | Rationale |
 |---|---|---|---|
-| **Framework** | React Native + Expo | SDK 54 | Modern, stable, unified ecosystem with full support for hardware APIs (camera, notifications, audio). |
-| **Language** | TypeScript | 5.x (Strict Mode) | Type safety for medical dosage, schedule timestamps, and member permissions. |
-| **Navigation** | Expo Router | File-based routing | Deep linking support, clean tab navigation (`(tabs)`), and intuitive modal presentations. |
+| **Framework** | React Native + Expo | SDK 57 (React 19.2.3, RN 0.86.3) | Latest production-ready Expo release with full React 19 support and unified hardware APIs. |
+| **Language** | TypeScript | ~6.0.3 (Strict Mode) | Type safety for medical dosage, schedule timestamps, and member permissions. |
+| **Navigation** | Expo Router | File-based routing (~57.0.23) | Deep linking support, clean tab navigation (`(tabs)`), and intuitive modal presentations. |
 | **UI Architecture** | Design Tokens + NativeWind / StyleSheet | Mobile-first Design System | High-contrast WCAG AA compliant palette (Medical Teal `#0D9488`, Calm Slate `#0F172A`, Clean Emerald `#059669`). Strict exclusion of arbitrary purple/violet. |
 
 ---
@@ -46,29 +46,33 @@
 ```json
 {
   "dependencies": {
-    "expo": "~54.0.36",
-    "expo-router": "~6.0.24",
-    "expo-status-bar": "~3.0.9",
-    "react": "19.1.0",
-    "react-native": "0.81.5",
-    "react-native-safe-area-context": "~5.6.0",
-    "react-native-screens": "~4.16.0",
-    "expo-notifications": "~0.32.17",
-    "expo-image-picker": "~17.0.11",
-    "expo-camera": "~17.0.10",
+    "expo": "~57.0.25",
+    "expo-router": "~57.0.23",
+    "expo-status-bar": "~57.0.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "expo-notifications": "~57.0.21",
+    "expo-image-picker": "~57.0.20",
+    "expo-camera": "~57.0.5",
     "expo-av": "~16.0.8",
-    "expo-haptics": "~15.0.8",
-    "expo-file-system": "~19.0.24",
-    "react-native-svg": "15.12.1",
+    "expo-haptics": "~57.0.3",
+    "expo-file-system": "~57.0.7",
+    "react-native-svg": "15.15.4",
     "react-native-qrcode-svg": "^6.3.26",
     "zustand": "^5.0.15",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@expo/vector-icons": "^15.0.3",
-    "expo-constants": "~18.0.13",
-    "expo-linking": "~8.0.12",
-    "react-dom": "19.1.0",
-    "react-native-web": "^0.21.0",
-    "@expo/metro-runtime": "~6.1.2"
+    "expo-constants": "~57.0.19",
+    "expo-linking": "~57.0.11",
+    "react-native-web": "~0.21.0",
+    "@expo/metro-runtime": "~57.0.16"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "typescript": "~6.0.3"
   }
 }
 ```

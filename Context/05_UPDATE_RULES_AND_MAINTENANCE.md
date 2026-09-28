@@ -42,6 +42,7 @@ Before marking any task, feature, or bug fix as complete:
 | 2026-09-28 | Mobile Developer | Added web platform capabilities (`react-dom`, `react-native-web`, `@expo/metro-runtime`) and updated `app.json` | `package.json`, `app.json`, `Context/02_TECH_STACK_AND_FRAMEWORK.md`, `Context/05_UPDATE_RULES_AND_MAINTENANCE.md` |
 | 2026-09-28 | Debugger | Fixed `createPermissionHook` mismatch by downgrading `expo-camera` to SDK 54 compatible `~17.0.10`, `expo-haptics` to `~15.0.8`, `react-native-svg` to `15.12.1`, and `@react-native-async-storage/async-storage` to `2.2.0` | `package.json`, `package-lock.json`, `Context/02_TECH_STACK_AND_FRAMEWORK.md`, `Context/05_UPDATE_RULES_AND_MAINTENANCE.md` |
 | 2026-09-28 | Mobile Developer | Removed all hardcoded initial medicines, mock circles, and mock profiles; implemented clean onboarding empty states; added real synthesized audio chime player (Web Audio API & base64 WAV for expo-av); added camera fallbacks and QR scan simulation | `src/constants/defaultData.ts`, `src/store/*`, `src/services/*`, `src/app/*`, `Context/05_UPDATE_RULES_AND_MAINTENANCE.md` |
+| 2026-09-28 | Mobile Developer | Upgraded app to Expo SDK 57 (expo ~57.0.25, react 19.2.3, react-native 0.86.3, typescript ~6.0.3, expo-camera ~57.0.5, expo-notifications ~57.0.21, expo-router ~57.0.23); fixed TypeScript StyleSheet & Buffer types; verified clean web build | `package.json`, `package-lock.json`, `src/app/care-circle/scan.tsx`, `src/services/audioHaptics.ts`, `Context/*` |
 
 
 

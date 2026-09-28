@@ -9,7 +9,7 @@
 | File | Purpose |
 |------|---------|
 | [01_APP_OVERVIEW.md](file:///c:/Users/Manel/OneDrive/Desktop/Practice%20Hackathon%20%231/sep29hackpractice/Context/01_APP_OVERVIEW.md) | High-level product summary, target personas, and core value proposition. |
-| [02_TECH_STACK_AND_FRAMEWORK.md](file:///c:/Users/Manel/OneDrive/Desktop/Practice%20Hackathon%20%231/sep29hackpractice/Context/02_TECH_STACK_AND_FRAMEWORK.md) | Technical stack specifications (Expo SDK 54, Expo Router, libraries, hardware APIs). |
+| [02_TECH_STACK_AND_FRAMEWORK.md](file:///c:/Users/Manel/OneDrive/Desktop/Practice%20Hackathon%20%231/sep29hackpractice/Context/02_TECH_STACK_AND_FRAMEWORK.md) | Technical stack specifications (Expo SDK 57, Expo Router, libraries, hardware APIs). |
 | [03_SECTIONS_AND_FEATURES.md](file:///c:/Users/Manel/OneDrive/Desktop/Practice%20Hackathon%20%231/sep29hackpractice/Context/03_SECTIONS_AND_FEATURES.md) | Detailed specifications of the 4 core sections: Dashboard, Medicine, Profile, and Care Circle. |
 | [04_DATA_SCHEMA_AND_ARCHITECTURE.md](file:///c:/Users/Manel/OneDrive/Desktop/Practice%20Hackathon%20%231/sep29hackpractice/Context/04_DATA_SCHEMA_AND_ARCHITECTURE.md) | Data models, state management, directory architecture, and alarm notification flows. |
 | [05_UPDATE_RULES_AND_MAINTENANCE.md](file:///c:/Users/Manel/OneDrive/Desktop/Practice%20Hackathon%20%231/sep29hackpractice/Context/05_UPDATE_RULES_AND_MAINTENANCE.md) | Mandatory protocol and checklist for keeping this Context folder updated on every app modification. |
