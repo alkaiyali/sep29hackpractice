@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import * as Notifications from 'expo-notifications';
 import { useMedicineStore, nearestScheduleTime } from '../store/medicineStore';
 import { useCareCircleStore } from '../store/careCircleStore';
 import { useUserStore } from '../store/userStore';
@@ -46,33 +45,46 @@ function RootNavigator() {
     initApp();
   }, [loadMedicines, loadCircles, initCircleSync, loadUser, loadActivity, loadVitals, loadSounds]);
 
-  // Handle notification action buttons (Take / Snooze from the shade)
+  // Handle notification action buttons (Take / Snooze from the shade).
+  // No-ops in Expo Go, where notifications are unavailable.
   useEffect(() => {
-    const sub = Notifications.addNotificationResponseReceivedListener(async (response) => {
-      const actionId = response.actionIdentifier;
-      if (actionId !== 'ACTION_TAKE' && actionId !== 'ACTION_SNOOZE') return;
+    let unsubscribe: (() => void) | null = null;
+    let cancelled = false;
 
-      const data = response.notification.request.content.data as {
-        medicineId?: string;
-        forMemberId?: string;
-        timeStr?: string;
-      };
-      if (!data?.medicineId) return;
+    void notificationService
+      .addResponseListener(async (response) => {
+        const actionId = response.actionIdentifier;
+        if (actionId !== 'ACTION_TAKE' && actionId !== 'ACTION_SNOOZE') return;
 
-      const store = useMedicineStore.getState();
-      const medicine = store.medicines.find((m) => m.id === data.medicineId);
-      if (!medicine) return;
+        const data = response.notification.request.content.data as {
+          medicineId?: string;
+          forMemberId?: string;
+          timeStr?: string;
+        };
+        if (!data?.medicineId) return;
 
-      const memberId = data.forMemberId || medicine.forMemberId || 'user_self';
-      const timeStr = data.timeStr || nearestScheduleTime(medicine.scheduleTimes);
-      await store.logDose(
-        medicine.id,
-        memberId,
-        timeStr,
-        actionId === 'ACTION_TAKE' ? 'taken' : 'snoozed'
-      );
-    });
-    return () => sub.remove();
+        const store = useMedicineStore.getState();
+        const medicine = store.medicines.find((m) => m.id === data.medicineId);
+        if (!medicine) return;
+
+        const memberId = data.forMemberId || medicine.forMemberId || 'user_self';
+        const timeStr = data.timeStr || nearestScheduleTime(medicine.scheduleTimes);
+        await store.logDose(
+          medicine.id,
+          memberId,
+          timeStr,
+          actionId === 'ACTION_TAKE' ? 'taken' : 'snoozed'
+        );
+      })
+      .then((off) => {
+        if (cancelled) off();
+        else unsubscribe = off;
+      });
+
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
   }, []);
 
   return (

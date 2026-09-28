@@ -20,7 +20,7 @@ import { VitalsPrompt } from '../../components/vitals/VitalsPrompt';
 import { ThemeColors } from '../../constants/colors';
 import { useTheme, useThemedStyles, ThemePreference } from '../../theme/ThemeProvider';
 import { Header } from '../../components/ui/Header';
-import { notificationService } from '../../services/notifications';
+import { notificationService, getNotificationsAvailability } from '../../services/notifications';
 import { audioHapticsService } from '../../services/audioHaptics';
 
 export default function ProfileScreen() {
@@ -28,6 +28,7 @@ export default function ProfileScreen() {
   const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const { profile, updateProfile, toggleNotifications, resetAllData } = useUserStore();
+  const notifications = getNotificationsAvailability();
 
   const [testingAlarm, setTestingAlarm] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -48,8 +49,10 @@ export default function ProfileScreen() {
         'This is how your medicine reminder will sound and vibrate!'
       );
       Alert.alert(
-        'Test Alarm Triggered',
-        'Check your notification banner and feel the haptic feedback.'
+        notifications.supported ? 'Test Alarm Triggered' : 'Sound & Vibration Tested',
+        notifications.supported
+          ? 'Check your notification banner and feel the haptic feedback.'
+          : (notifications.reason ?? 'System notifications are unavailable in this environment.')
       );
     } catch (err) {
       console.warn('Error testing alarm:', err);
@@ -187,7 +190,11 @@ export default function ProfileScreen() {
           <View style={styles.toggleRow}>
             <View style={styles.toggleInfo}>
               <Text style={styles.toggleTitle}>Allow Scheduled Alarms</Text>
-              <Text style={styles.toggleSub}>Receive alarms on lock screen when doses are due</Text>
+              <Text style={styles.toggleSub}>
+                {notifications.supported
+                  ? 'Receive alarms on lock screen when doses are due'
+                  : 'Unavailable in Expo Go — install the APK for reminders'}
+              </Text>
             </View>
             <Switch
               value={profile.notificationsEnabled}

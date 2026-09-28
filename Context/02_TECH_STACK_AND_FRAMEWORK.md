@@ -18,6 +18,7 @@
 - Repeating daily and multi-day alarms.
 - Custom categories with interactive notification actions: **"Take Now"** and **"Snooze (5m/10m/15m)"**.
 - Foreground presentation handler to alert users while actively using the app.
+- **Expo Go:** `expo-notifications` is loaded lazily and every call no-ops there (the module cannot run alarms in Expo Go and its error banner blocked development). Real alarms require the APK or a development build; sound and haptics work everywhere.
 
 ### B. Audio & Haptics (`expo-av` & `expo-haptics`)
 - **Sound Alerts**: Audio playback using `expo-av` for chime, gentle alarm, or standard alert tone.
