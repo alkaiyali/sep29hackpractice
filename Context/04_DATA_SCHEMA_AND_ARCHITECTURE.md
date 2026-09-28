@@ -104,7 +104,7 @@ export interface DailyAdherenceSummary {
   skipped: number;
   snoozed: number;
   missed: number;
-  percentage: number;
+  percentage: number; // 0 when nothing is due (empty days are neutral, never 100%)
 }
 
 export interface UserProfile {
@@ -131,6 +131,25 @@ Derived values are computed in the store (never persisted redundantly):
 - `logDose(...)` — writes the log **and** adjusts `inventoryCount` exactly once per taken/un-taken transition, firing `notificationService.notifyLowSupply` when crossing the threshold.
 - Theme preference (`system` / `light` / `dark`) is persisted under `StorageKeys.THEME_PREF` by `src/theme/ThemeProvider.tsx`.
 
+### E. Vitals, Reactions & Escalation State
+
+```typescript
+export interface VitalLog {
+  id: string;
+  medicineId?: string; // linked dose, if captured right after taking
+  memberId: string;
+  date: string; // YYYY-MM-DD (local)
+  systolic?: number; // mmHg
+  diastolic?: number; // mmHg
+  glucose?: number; // mg/dL
+  createdAt: string; // ISO timestamp
+}
+```
+
+- `useVitalsStore` (`src/store/vitalsStore.ts`): offline log capped at 500 entries, `StorageKeys.VITALS`.
+- `useActivityStore` (`src/store/activityStore.ts`): `{ [logId]: { [emoji]: count } }` cheers, `StorageKeys.REACTIONS`.
+- Escalation dedupe: alerted `YYYY-MM-DD|medicineId|timeStr` keys, `StorageKeys.ESCALATION_ALERTS` (last 200).
+
 ---
 
 ## 2. Directory & Component Architecture
@@ -154,7 +173,8 @@ sep29hackpractice/
 │   │   │   ├── care-circle.tsx      # 3. Care Circle Tab
 │   │   │   └── profile.tsx          # 4. Profile Tab
 │   │   ├── medicine/
-│   │   │   ├── add.tsx              # Add Medicine Screen (Modal)
+│   │   │   ├── add.tsx              # Add Medicine Screen (Modal, + OCR prefill via params)
+│   │   │   ├── scan-label.tsx       # Prescription Label OCR Scanner (Modal)
 │   │   │   └── [id].tsx             # Medicine Details / Edit Screen
 │   │   ├── care-circle/
 │   │   │   ├── create.tsx           # Create Circle & View QR Code Modal
@@ -171,8 +191,11 @@ sep29hackpractice/
 │   │   ├── colors.ts                # Strict Health Palette (Teal, Slate, Emerald)
 │   │   └── defaultData.ts           # Initial demo data for seamless onboarding
 │   ├── services/
-│   │   ├── notifications.ts         # Expo Notifications scheduler & snooze logic
-│   │   ├── audioHaptics.ts          # Expo AV sound triggers & Expo Haptics patterns
+│   │   ├── notifications.ts         # Expo Notifications scheduler, snooze, refill + escalation alerts
+│   │   ├── audioHaptics.ts          # Bundled WAV chimes (assets/sounds) + Haptics patterns
+│   │   ├── precautions.ts           # Food/beverage/timing precaution rules
+│   │   ├── interactions.ts          # Drug-drug interaction pair rules
+│   │   ├── labelOcr.ts              # OCR.space label extraction + sig parser
 │   │   ├── report.ts                # Clinical PDF doctor-report builder & share
 │   │   ├── camera.ts                # ImagePicker launcher & storage manager
 │   │   └── storage.ts               # AsyncStorage engine
@@ -180,6 +203,8 @@ sep29hackpractice/
 │   │   └── ThemeProvider.tsx        # system/light/dark provider + useThemedStyles hook
 │   ├── store/
 │   │   ├── medicineStore.ts         # Zustand store for medicines and logs
+│   │   ├── vitalsStore.ts           # Zustand store for BP/glucose logs
+│   │   ├── activityStore.ts         # Zustand store for circle cheers
 │   │   ├── careCircleStore.ts       # Zustand store for circles and members
 │   │   └── userStore.ts             # Zustand store for user info and settings
 │   └── types/

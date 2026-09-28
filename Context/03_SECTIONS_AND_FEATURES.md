@@ -76,6 +76,7 @@ The user provides comprehensive information to ensure accurate medication delive
 | **Reminder Settings** | Nested Settings Panel | - **Sound**: On/Off toggle + Sound selection (*Default Chime*, *Gentle Bell*, *Radar*, *Medical Pulse*).<br>- **Vibration**: On/Off toggle + Pattern selection (*Gentle*, *Crisp*, *Heavy Alert*).<br>- **Snooze Time**: Duration selector (*5 mins*, *10 mins*, *15 mins*, *30 mins*). |
 | **Target Recipient** | Member Selector | *Myself* or any member from *Care Circle* |
 | **Supply & Refill Tracker** | Optional Numeric Fields + Phone | - **Doses left in supply** (optional).<br>- **Alert at or below** threshold (default 3).<br>- **Pharmacy phone** for one-tap `tel:` refill calls. |
+| **Scan Label Shortcut** | Camera / Gallery → OCR → Confirm | Photograph a prescription label; OCR pre-fills name, strength, directions into this form for confirmation. |
 
 ---
 
@@ -97,6 +98,11 @@ The Care Circle feature coordinates family members, guardians, and caregivers to
 4. **Add Medicine for Reminder for Loved Ones**:
    - Caregivers can add or schedule medicines directly assigned to any member of the circle.
    - Notifications trigger locally on the caregiver's device as monitoring reminders, or sync to the member's profile.
+5. **Circle Activity Feed (local)**:
+   - Recent dose events (taken / skipped / snoozed) with member names and timestamps.
+   - Tappable emoji cheers (❤️, 👍, 🌟) persisted per event.
+6. **Missed-Dose Escalation (local tiers)**:
+   - Tier 2 (60–120 min late): gentle reminder notification. Tier 3 (2–4 h late): urgent check-in nudge. One alert per dose; cross-device SMS/push awaits the cloud backend.
 
 ---
 
@@ -124,4 +130,7 @@ Manages personal account details, system preferences, and app health settings.
    - Full dual-palette support across every screen (tokens in `src/constants/colors.ts`).
 6. **Doctor Report**:
    - One-tap generation of a 30-day adherence PDF (`expo-print` + `expo-sharing`).
-   - Includes adherence stats, medication schedules, recent dose activity, allergies, and emergency contact.
+   - Includes adherence stats, medication schedules, recent dose activity, vitals table, allergies, and emergency contact.
+7. **Health Vitals**:
+   - Optional BP/glucose bottom-sheet prompt after each taken dose, plus manual entry.
+   - Recent readings listed in Profile; included in the doctor PDF.

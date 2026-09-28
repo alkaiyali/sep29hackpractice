@@ -72,11 +72,13 @@ export default function ProfileScreen() {
     try {
       setExporting(true);
       const { getDoseHistory, medicines, logs } = useMedicineStore.getState();
+      const { vitals } = useVitalsStore.getState();
       await exportDoctorReport({
         profile,
         medicines,
         summaries: getDoseHistory(30),
         logs,
+        vitals,
       });
     } catch (err) {
       console.warn('Error exporting report:', err);

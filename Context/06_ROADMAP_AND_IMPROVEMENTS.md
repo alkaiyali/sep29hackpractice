@@ -19,7 +19,7 @@ To take Meddy from an agile MVP to a market-leading, clinically reliable health 
 
 ## 🗺️ Phased Roadmap (Iterative Milestones)
 
-> **Status update (2026-09-28):** ✅ 1.1 Refill Tracker · ✅ 1.2 History Calendar · ✅ 1.4 Dark Mode · ✅ 4.1 Doctor PDF Report · 🟡 2.2 Missed-dose detection (local Tier-1 done; cross-device escalation needs cloud) · 🟡 1.3 Custom chimes (synthesized in-app; bundled audio files pending) · ⏳ Cloud-dependent items (2.1, 2.3) and advanced safety (3.1–3.3, 4.2) remain.
+> **Status update (2026-09-28):** ✅ 1.1 Refill Tracker · ✅ 1.2 History Calendar · ✅ 1.3 Bundled chimes · ✅ 1.4 Dark Mode · ✅ 2.2 Local escalation tiers · ✅ 2.3 Local activity feed + cheers · ✅ 3.1 OCR label scanner · ✅ 3.2 Interaction gate · ✅ 3.3 Precautions · ✅ 4.1 Doctor PDF Report · ✅ 4.2 Vitals · ⏳ 2.1 Cloud backend (needs project + credentials — deliberately last).
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐

@@ -48,8 +48,18 @@
 - Crossing the threshold fires a high-priority local notification (`notificationService.notifyLowSupply`) and a Dashboard refill banner with one-tap `tel:` call when a pharmacy phone is set.
 
 ### G. Clinical PDF Reports (`expo-print` & `expo-sharing`)
-- `src/services/report.ts` renders a self-contained HTML adherence report (30-day statistics, medication schedule, recent dose activity, allergies/emergency contact).
+- `src/services/report.ts` renders a self-contained HTML adherence report (30-day statistics, medication schedule, recent dose activity, vitals table, allergies/emergency contact).
 - Native: `Print.printToFileAsync` → `Sharing.shareAsync` (PDF). Web: opens a print-ready window.
+
+### H. Safety Engines (offline, educational)
+- `src/services/precautions.ts`: 14 food/beverage/timing rules matched against medicine names (grapefruit, dairy, bleeding, alcohol…). Surfaced as tappable chips on dose cards and live cautions in the add form.
+- `src/services/interactions.ts`: 10 high-risk drug-pair rules checked at save time; major risks block with an override alert.
+- `src/services/labelOcr.ts`: prescription-label OCR via OCR.space (camera/gallery capture → parse name/strength/directions → confirm screen → prefill add form). Internet required; manual entry always available.
+
+### I. Engagement & Vitals (offline)
+- `src/store/activityStore.ts`: per-log emoji cheers (❤️/👍/🌟), persisted; rendered as the Circle Activity feed.
+- `src/store/vitalsStore.ts` + `src/components/vitals/VitalsPrompt.tsx`: BP/glucose capture in a bottom sheet after each taken dose (plus manual entry); recent readings in Profile; vitals table in the PDF report.
+- Missed-dose escalation runs inside `useMedicineStore.loadData` (`checkMissedEscalations`): gentle reminder at 60–120 min late, urgent nudge at 2–4 h, once per dose.
 
 ---
 

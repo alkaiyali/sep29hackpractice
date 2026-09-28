@@ -4,12 +4,14 @@ import * as Sharing from 'expo-sharing';
 import { DailyAdherenceSummary, MedicationLog } from '../types/log';
 import { Medicine } from '../types/medicine';
 import { UserProfile } from '../types/user';
+import { VitalLog } from '../types/vitals';
 
 export interface ReportData {
   profile: UserProfile;
   medicines: Medicine[];
   summaries: DailyAdherenceSummary[]; // chronological, oldest → newest
   logs: MedicationLog[]; // raw logs (any order)
+  vitals?: VitalLog[];
 }
 
 function escapeHtml(value: string): string {
@@ -44,7 +46,7 @@ const STATUS_LABEL: Record<MedicationLog['status'], string> = {
   snoozed: '⏰ Snoozed',
 };
 
-export function buildReportHtml({ profile, medicines, summaries, logs }: ReportData): string {
+export function buildReportHtml({ profile, medicines, summaries, logs, vitals = [] }: ReportData): string {
   const generatedAt = new Date().toLocaleString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -109,6 +111,28 @@ export function buildReportHtml({ profile, medicines, summaries, logs }: ReportD
   const allergies =
     profile.allergies.length > 0 ? profile.allergies.map(escapeHtml).join(', ') : 'None recorded';
 
+  const vitalRows = [...vitals]
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, 14)
+    .map((v) => {
+      const reading =
+        v.systolic != null && v.diastolic != null
+          ? `${v.systolic}/${v.diastolic} mmHg`
+          : v.systolic != null
+          ? `${v.systolic} mmHg sys`
+          : v.diastolic != null
+          ? `${v.diastolic} mmHg dia`
+          : '—';
+      const glucose = v.glucose != null ? `${v.glucose} mg/dL` : '—';
+      return `
+        <tr>
+          <td>${escapeHtml(v.date)}</td>
+          <td>${reading}</td>
+          <td>${glucose}</td>
+        </tr>`;
+    })
+    .join('');
+
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -158,6 +182,12 @@ export function buildReportHtml({ profile, medicines, summaries, logs }: ReportD
   <table>
     <thead><tr><th>Action time</th><th>Medicine</th><th>Status</th></tr></thead>
     <tbody>${logRows || '<tr><td colspan="3">No dose activity recorded.</td></tr>'}</tbody>
+  </table>
+
+  <h2>Vitals (latest 14)</h2>
+  <table>
+    <thead><tr><th>Date</th><th>Blood pressure</th><th>Glucose</th></tr></thead>
+    <tbody>${vitalRows || '<tr><td colspan="3">No vitals recorded.</td></tr>'}</tbody>
   </table>
 
   <div class="footer">
