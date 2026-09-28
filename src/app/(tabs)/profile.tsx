@@ -26,7 +26,7 @@ export default function ProfileScreen() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState(profile.name);
   const [editEmergency, setEditEmergency] = useState(profile.emergencyContactPhone || '');
-  const [editBloodType, setEditBloodType] = useState(profile.bloodType || 'O+');
+  const [editBloodType, setEditBloodType] = useState(profile.bloodType || '');
 
   const handleTestAlarm = async () => {
     try {
@@ -84,14 +84,16 @@ export default function ProfileScreen() {
         {/* User Card */}
         <View style={styles.userCard}>
           <View style={styles.avatarCircle}>
-            <Text style={styles.avatarInitial}>{profile.name.charAt(0).toUpperCase()}</Text>
+            <Text style={styles.avatarInitial}>
+              {profile.name ? profile.name.charAt(0).toUpperCase() : '?'}
+            </Text>
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>{profile.name}</Text>
+            <Text style={styles.userName}>{profile.name || 'Add your name'}</Text>
             <Text style={styles.userRole}>Primary Account Holder</Text>
             <View style={styles.bloodTypeTag}>
               <Ionicons name="water" size={13} color={Colors.light.danger} />
-              <Text style={styles.bloodTypeText}>Blood Type: {profile.bloodType || 'O+'}</Text>
+              <Text style={styles.bloodTypeText}>Blood Type: {profile.bloodType || 'Not set'}</Text>
             </View>
           </View>
           <TouchableOpacity
@@ -99,7 +101,7 @@ export default function ProfileScreen() {
             onPress={() => {
               setEditName(profile.name);
               setEditEmergency(profile.emergencyContactPhone || '');
-              setEditBloodType(profile.bloodType || 'O+');
+              setEditBloodType(profile.bloodType || '');
               setShowEditModal(true);
             }}
           >
@@ -116,8 +118,8 @@ export default function ProfileScreen() {
             <Text style={styles.cardTitle}>Emergency Contact</Text>
           </View>
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>{profile.emergencyContactName || 'Spouse'}</Text>
-            <Text style={styles.infoValue}>{profile.emergencyContactPhone || '+1 (555) 234-5678'}</Text>
+            <Text style={styles.infoLabel}>{profile.emergencyContactName || 'Not set'}</Text>
+            <Text style={styles.infoValue}>{profile.emergencyContactPhone || 'Not set'}</Text>
           </View>
         </View>
 
@@ -129,14 +131,18 @@ export default function ProfileScreen() {
             </View>
             <Text style={styles.cardTitle}>Known Drug Allergies</Text>
           </View>
-          <View style={styles.allergyChipsRow}>
-            {profile.allergies.map((allergy) => (
-              <View key={allergy} style={styles.allergyChip}>
-                <Ionicons name="warning-outline" size={12} color={Colors.light.warning} />
-                <Text style={styles.allergyChipText}>{allergy}</Text>
-              </View>
-            ))}
-          </View>
+          {profile.allergies.length === 0 ? (
+            <Text style={styles.noAllergiesText}>No known drug allergies recorded</Text>
+          ) : (
+            <View style={styles.allergyChipsRow}>
+              {profile.allergies.map((allergy) => (
+                <View key={allergy} style={styles.allergyChip}>
+                  <Ionicons name="warning-outline" size={12} color={Colors.light.warning} />
+                  <Text style={styles.allergyChipText}>{allergy}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Alarm & Notification Diagnostics */}
@@ -358,6 +364,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+  },
+  noAllergiesText: {
+    fontSize: 13,
+    color: Colors.light.textMuted,
+    fontStyle: 'italic',
   },
   allergyChip: {
     flexDirection: 'row',

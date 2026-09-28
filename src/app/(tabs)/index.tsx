@@ -56,9 +56,7 @@ export default function DashboardScreen() {
         <View>
           <Text style={styles.dateLabel}>{todayFormatted}</Text>
           <Text style={styles.greetingTitle}>
-            {user.name && user.name !== 'My Profile'
-              ? `Hello, ${user.name.split(' ')[0]} 👋`
-              : 'Welcome to Meddy 👋'}
+            {user.name ? `Hello, ${user.name.split(' ')[0]} 👋` : 'Welcome to Meddy 👋'}
           </Text>
         </View>
         <TouchableOpacity

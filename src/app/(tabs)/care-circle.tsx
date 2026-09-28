@@ -269,7 +269,7 @@ export default function CareCircleScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Create a New Care Circle</Text>
-            <Text style={styles.modalSub}>Give your circle a name (e.g. "Mom's Care Group")</Text>
+            <Text style={styles.modalSub}>Give your circle a name (e.g. "Family Care Group")</Text>
             <TextInput
               style={styles.modalInput}
               placeholder="Circle Name"
@@ -303,7 +303,7 @@ export default function CareCircleScreen() {
             <Text style={styles.modalSub}>Add someone you care for or monitor</Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="Member Name (e.g. Grandma Helen)"
+              placeholder="Member Name"
               placeholderTextColor={Colors.light.textMuted}
               value={memberName}
               onChangeText={setMemberName}

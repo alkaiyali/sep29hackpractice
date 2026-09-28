@@ -99,32 +99,13 @@ export default function ScanCareCircleScreen() {
             <Ionicons name="camera-outline" size={48} color={Colors.light.textMuted} />
             <Text style={styles.permTitle}>Camera Access</Text>
             <Text style={styles.permSub}>
-              To scan another caregiver's QR code on device, allow camera access. Alternatively, you can enter an invite code or test with a simulated QR scan.
+              To scan another caregiver's QR code on device, allow camera access. You can also enter an invite code manually below.
             </Text>
-            <View style={styles.permButtonsRow}>
-              {Platform.OS !== 'web' && (
-                <TouchableOpacity style={styles.grantBtn} onPress={requestPermission}>
-                  <Text style={styles.grantBtnText}>Grant Camera Access</Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                style={styles.simulateBtn}
-                onPress={() => {
-                  const mockPayload = JSON.stringify({
-                    version: '1.0',
-                    circleId: `circle_shared_${Date.now()}`,
-                    circleName: "Grandma's Care Circle",
-                    inviterName: 'Sarah Rivera',
-                    inviteCode: 'MEDDY-GMA-4102',
-                    timestamp: Date.now(),
-                  });
-                  handleBarcodeScanned({ data: mockPayload });
-                }}
-              >
-                <Ionicons name="flask-outline" size={16} color="#FFFFFF" />
-                <Text style={styles.simulateBtnText}>Simulate QR Scan (Test)</Text>
+            {Platform.OS !== 'web' && (
+              <TouchableOpacity style={styles.grantBtn} onPress={requestPermission}>
+                <Text style={styles.grantBtnText}>Grant Camera Access</Text>
               </TouchableOpacity>
-            </View>
+            )}
           </View>
         ) : (
           <>
@@ -148,23 +129,6 @@ export default function ScanCareCircleScreen() {
               <Text style={styles.targetInstruction}>
                 Align the Care Circle QR code within the frame
               </Text>
-              <TouchableOpacity
-                style={styles.testOverlayBtn}
-                onPress={() => {
-                  const mockPayload = JSON.stringify({
-                    version: '1.0',
-                    circleId: `circle_shared_${Date.now()}`,
-                    circleName: "Family Health Circle",
-                    inviterName: 'Caregiver',
-                    inviteCode: 'MEDDY-TEST-9921',
-                    timestamp: Date.now(),
-                  });
-                  handleBarcodeScanned({ data: mockPayload });
-                }}
-              >
-                <Ionicons name="flask-outline" size={14} color="#FFFFFF" />
-                <Text style={styles.testOverlayBtnText}>Test QR Join</Text>
-              </TouchableOpacity>
             </View>
           </>
         )}
@@ -176,7 +140,7 @@ export default function ScanCareCircleScreen() {
         <View style={styles.manualInputRow}>
           <TextInput
             style={styles.manualInput}
-            placeholder="e.g. MEDDY-RIV-8942"
+            placeholder="e.g. MEDDY-4821-A"
             placeholderTextColor="#94A3B8"
             autoCapitalize="characters"
             value={manualCode}
@@ -242,49 +206,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 14,
+    marginTop: 8,
   },
   grantBtnText: {
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 14,
-  },
-  permButtonsRow: {
-    flexDirection: 'column',
-    gap: 10,
-    marginTop: 8,
-    width: '100%',
-    alignItems: 'center',
-  },
-  simulateBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: '#0284C7',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 14,
-    width: '100%',
-  },
-  simulateBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 14,
-  },
-  testOverlayBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(2, 132, 199, 0.85)',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginTop: 16,
-  },
-  testOverlayBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 13,
   },
   overlay: {
     flex: 1,

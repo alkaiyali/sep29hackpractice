@@ -4,7 +4,7 @@ import { UserProfile } from '../types/user';
 
 export const INITIAL_USER: UserProfile = {
   id: 'user_self',
-  name: 'My Profile',
+  name: '',
   allergies: [],
   notificationsEnabled: true,
   defaultReminderSettings: {

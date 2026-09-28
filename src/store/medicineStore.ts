@@ -35,12 +35,7 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
   isLoaded: false,
 
   loadData: async () => {
-    let savedMeds = await safeStorage.getItem<Medicine[]>(StorageKeys.MEDICINES, []);
-    // Filter out previous mock data
-    savedMeds = savedMeds.filter(
-      (m) => !['med_amoxicillin', 'med_vitamind', 'med_lisinopril_mom'].includes(m.id)
-    );
-
+    const savedMeds = await safeStorage.getItem<Medicine[]>(StorageKeys.MEDICINES, []);
     const savedLogs = await safeStorage.getItem<MedicationLog[]>(StorageKeys.LOGS, []);
     set({ medicines: savedMeds, logs: savedLogs, isLoaded: true });
   },

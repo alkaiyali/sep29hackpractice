@@ -23,9 +23,7 @@ export const useCareCircleStore = create<CareCircleState>((set, get) => ({
   isLoaded: false,
 
   loadData: async () => {
-    let savedCircles = await safeStorage.getItem<CareCircle[]>(StorageKeys.CARE_CIRCLES, []);
-    // Filter out previous mock data if present
-    savedCircles = savedCircles.filter((c) => c.id !== 'circle_rivera_family');
+    const savedCircles = await safeStorage.getItem<CareCircle[]>(StorageKeys.CARE_CIRCLES, []);
 
     const savedActiveId = await safeStorage.getItem<string | null>(
       StorageKeys.ACTIVE_CIRCLE_ID,
@@ -52,7 +50,7 @@ export const useCareCircleStore = create<CareCircleState>((set, get) => ({
       members: [
         {
           id: 'user_self',
-          name: inviterName || 'Alex Rivera',
+          name: inviterName.trim() || 'You',
           relation: 'Self',
           avatarColor: '#0D9488',
           isOwner: true,
@@ -112,7 +110,7 @@ export const useCareCircleStore = create<CareCircleState>((set, get) => ({
           },
           {
             id: 'user_self',
-            name: currentUserName || 'Alex Rivera',
+            name: currentUserName.trim() || 'You',
             relation: 'Self',
             avatarColor: '#0D9488',
             isOwner: false,
