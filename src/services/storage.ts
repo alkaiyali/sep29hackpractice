@@ -9,6 +9,7 @@ export const StorageKeys = {
   THEME_PREF: '@meddy_theme_pref_v1',
   ESCALATION_ALERTS: '@meddy_escalation_alerts_v1',
   REACTIONS: '@meddy_reactions_v1',
+  VITALS: '@meddy_vitals_v1',
 };
 
 export const safeStorage = {

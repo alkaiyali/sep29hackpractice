@@ -14,7 +14,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useUserStore } from '../../store/userStore';
 import { useMedicineStore } from '../../store/medicineStore';
+import { useVitalsStore } from '../../store/vitalsStore';
 import { exportDoctorReport } from '../../services/report';
+import { VitalsPrompt } from '../../components/vitals/VitalsPrompt';
 import { ThemeColors } from '../../constants/colors';
 import { useTheme, useThemedStyles, ThemePreference } from '../../theme/ThemeProvider';
 import { Header } from '../../components/ui/Header';
@@ -29,6 +31,8 @@ export default function ProfileScreen() {
 
   const [testingAlarm, setTestingAlarm] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [showVitalsPrompt, setShowVitalsPrompt] = useState(false);
+  const vitals = useVitalsStore((s) => s.vitals);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState(profile.name);
   const [editEmergency, setEditEmergency] = useState(profile.emergencyContactPhone || '');
@@ -270,6 +274,49 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Health Vitals */}
+        <View style={styles.sectionCard}>
+          <View style={styles.cardTitleRow}>
+            <View style={[styles.cardIconBg, { backgroundColor: colors.dangerLight }]}>
+              <Ionicons name="heart-outline" size={18} color={colors.danger} />
+            </View>
+            <Text style={styles.cardTitle}>Health Vitals</Text>
+          </View>
+          {vitals.length === 0 ? (
+            <Text style={styles.reportHint}>
+              No readings yet — vitals you log after taking a dose appear here.
+            </Text>
+          ) : (
+            <View style={styles.vitalsList}>
+              {vitals.slice(0, 5).map((v) => (
+                <View key={v.id} style={styles.vitalRow}>
+                  <Text style={styles.vitalDate}>{v.date}</Text>
+                  <Text style={styles.vitalValue}>
+                    {v.systolic != null && v.diastolic != null
+                      ? `${v.systolic}/${v.diastolic} mmHg`
+                      : v.systolic != null
+                      ? `${v.systolic} sys`
+                      : v.diastolic != null
+                      ? `${v.diastolic} dia`
+                      : ''}
+                    {v.glucose != null
+                      ? `${v.systolic != null || v.diastolic != null ? ' · ' : ''}${v.glucose} mg/dL`
+                      : ''}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+          <TouchableOpacity
+            style={styles.vitalsBtn}
+            onPress={() => setShowVitalsPrompt(true)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="add" size={16} color={colors.primary} />
+            <Text style={styles.vitalsBtnText}>Log vitals</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Reset / Danger Zone */}
         <View style={styles.dangerZone}>
           <TouchableOpacity
@@ -335,6 +382,12 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Standalone vitals entry */}
+      <VitalsPrompt
+        visible={showVitalsPrompt}
+        onClose={() => setShowVitalsPrompt(false)}
+      />
     </View>
   );
 }
@@ -561,6 +614,44 @@ const createStyles = (colors: ThemeColors) =>
   exportBtnText: {
     color: colors.onPrimary,
     fontSize: 14,
+    fontWeight: '700',
+  },
+  vitalsList: {
+    gap: 6,
+  },
+  vitalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceSubtle,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  vitalDate: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  vitalValue: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: colors.primaryDark,
+  },
+  vitalsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    marginTop: 4,
+  },
+  vitalsBtnText: {
+    color: colors.primary,
+    fontSize: 13,
     fontWeight: '700',
   },
   dangerZone: {

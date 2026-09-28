@@ -20,6 +20,7 @@ import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 import { TodayDoseCard } from '../../components/dashboard/TodayDoseCard';
 import { AdherenceCard } from '../../components/dashboard/AdherenceCard';
 import { CareCircleSummary } from '../../components/dashboard/CareCircleSummary';
+import { VitalsPrompt } from '../../components/vitals/VitalsPrompt';
 
 export default function DashboardScreen() {
   const { colors } = useTheme();
@@ -64,6 +65,11 @@ export default function DashboardScreen() {
   };
 
   const [refreshing, setRefreshing] = React.useState(false);
+  const [vitalsFor, setVitalsFor] = React.useState<{
+    medicineId: string;
+    memberId: string;
+    medicineName: string;
+  } | null>(null);
   const onRefresh = async () => {
     setRefreshing(true);
     await loadData();
@@ -197,9 +203,14 @@ export default function DashboardScreen() {
                 key={dose.id}
                 item={dose}
                 memberName={getMemberName(dose.medicine.forMemberId)}
-                onTake={() =>
-                  logDose(dose.medicine.id, dose.medicine.forMemberId, dose.timeStr, 'taken')
-                }
+                onTake={async () => {
+                  await logDose(dose.medicine.id, dose.medicine.forMemberId, dose.timeStr, 'taken');
+                  setVitalsFor({
+                    medicineId: dose.medicine.id,
+                    memberId: dose.medicine.forMemberId,
+                    medicineName: dose.medicine.name,
+                  });
+                }}
                 onSnooze={() =>
                   logDose(dose.medicine.id, dose.medicine.forMemberId, dose.timeStr, 'snoozed')
                 }
@@ -221,6 +232,15 @@ export default function DashboardScreen() {
       >
         <Ionicons name="add" size={28} color={colors.onPrimary} />
       </TouchableOpacity>
+
+      {/* Optional vitals capture right after taking a dose */}
+      <VitalsPrompt
+        visible={vitalsFor != null}
+        medicineName={vitalsFor?.medicineName}
+        memberId={vitalsFor?.memberId}
+        medicineId={vitalsFor?.medicineId}
+        onClose={() => setVitalsFor(null)}
+      />
     </View>
   );
 }
