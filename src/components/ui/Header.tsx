@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { ThemeColors } from '../../constants/colors';
+import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 
 interface HeaderProps {
   title: string;
@@ -16,12 +17,14 @@ export const Header: React.FC<HeaderProps> = ({
   onBack,
   rightAction,
 }) => {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.container}>
       <View style={styles.leftRow}>
         {onBack && (
           <TouchableOpacity onPress={onBack} style={styles.backButton} hitSlop={12}>
-            <Ionicons name="arrow-back" size={24} color={Colors.light.textPrimary} />
+            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
         )}
         <View style={styles.textContainer}>
@@ -34,14 +37,15 @@ export const Header: React.FC<HeaderProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 14,
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background,
   },
   leftRow: {
     flexDirection: 'row',
@@ -58,12 +62,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
     letterSpacing: -0.4,
   },
   subtitle: {
     fontSize: 14,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     marginTop: 2,
   },
   rightAction: {

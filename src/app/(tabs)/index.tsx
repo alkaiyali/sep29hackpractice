@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Alert,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -13,22 +15,53 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMedicineStore } from '../../store/medicineStore';
 import { useCareCircleStore } from '../../store/careCircleStore';
 import { useUserStore } from '../../store/userStore';
-import { Colors } from '../../constants/colors';
+import { ThemeColors } from '../../constants/colors';
+import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 import { TodayDoseCard } from '../../components/dashboard/TodayDoseCard';
 import { AdherenceCard } from '../../components/dashboard/AdherenceCard';
 import { CareCircleSummary } from '../../components/dashboard/CareCircleSummary';
 
 export default function DashboardScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
   const user = useUserStore((s) => s.profile);
-  const { getTodayDoses, getTodayAdherence, getStreakDays, logDose, loadData } = useMedicineStore();
+  const { getTodayDoses, getTodayAdherence, getStreakDays, logDose, loadData, getLowSupplyMedicines } =
+    useMedicineStore();
   const activeCircle = useCareCircleStore((s) => s.getActiveCircle());
 
   const todayDoses = getTodayDoses();
   const adherence = getTodayAdherence();
   const streak = getStreakDays();
+  const lowSupply = getLowSupplyMedicines();
+
+  const handleRefill = () => {
+    if (lowSupply.length === 0) return;
+    const withPhone = lowSupply.find((m) => m.pharmacyPhone);
+    if (withPhone?.pharmacyPhone) {
+      Alert.alert(
+        'Request Refill',
+        `Call the pharmacy for ${withPhone.name}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: `Call ${withPhone.pharmacyPhone}`,
+            onPress: () => Linking.openURL(`tel:${withPhone.pharmacyPhone}`),
+          },
+        ]
+      );
+    } else {
+      Alert.alert(
+        'Low Supply',
+        lowSupply
+          .map((m) => `${m.name}: ${m.inventoryCount} ${m.inventoryCount === 1 ? 'dose' : 'doses'} left`)
+          .join('\n') +
+          '\n\nTip: add a pharmacy phone number when editing a medicine for one-tap refill calls.'
+      );
+    }
+  };
 
   const [refreshing, setRefreshing] = React.useState(false);
   const onRefresh = async () => {
@@ -64,7 +97,7 @@ export default function DashboardScreen() {
           onPress={() => router.push('/(tabs)/profile')}
           activeOpacity={0.7}
         >
-          <Ionicons name="notifications-outline" size={22} color={Colors.light.textPrimary} />
+          <Ionicons name="notifications-outline" size={22} color={colors.textPrimary} />
           {user.notificationsEnabled && <View style={styles.notificationDot} />}
         </TouchableOpacity>
       </View>
@@ -76,12 +109,38 @@ export default function DashboardScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={Colors.light.primary}
+            tintColor={colors.primary}
           />
         }
       >
+        {/* Low Supply Refill Banner */}
+        {lowSupply.length > 0 && (
+          <TouchableOpacity
+            style={styles.lowSupplyBanner}
+            onPress={handleRefill}
+            activeOpacity={0.8}
+          >
+            <View style={styles.lowSupplyIconBg}>
+              <Ionicons name="alert-circle" size={20} color={colors.danger} />
+            </View>
+            <View style={styles.lowSupplyTextCol}>
+              <Text style={styles.lowSupplyTitle}>Low Supply — Time to Refill</Text>
+              <Text style={styles.lowSupplyText} numberOfLines={2}>
+                {lowSupply
+                  .map((m) => `${m.name} (${m.inventoryCount} left)`)
+                  .join(' · ')}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.danger} />
+          </TouchableOpacity>
+        )}
+
         {/* Adherence Card */}
-        <AdherenceCard summary={adherence} streakDays={streak} />
+        <AdherenceCard
+          summary={adherence}
+          streakDays={streak}
+          onPressHistory={() => router.push('/history')}
+        />
 
         {/* Care Circle Summary */}
         <CareCircleSummary
@@ -103,13 +162,13 @@ export default function DashboardScreen() {
             onPress={() => router.push('/(tabs)/medicines')}
           >
             <Text style={styles.seeAllText}>All Meds</Text>
-            <Ionicons name="chevron-forward" size={14} color={Colors.light.primary} />
+            <Ionicons name="chevron-forward" size={14} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
         {todayDoses.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Ionicons name="checkmark-done-circle-outline" size={54} color={Colors.light.primary} />
+            <Ionicons name="checkmark-done-circle-outline" size={54} color={colors.primary} />
             <Text style={styles.emptyTitle}>No Doses Remaining Today</Text>
             <Text style={styles.emptySubtitle}>
               You have no active medications scheduled for today, or all have been taken.
@@ -157,10 +216,11 @@ export default function DashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -172,14 +232,14 @@ const styles = StyleSheet.create({
   dateLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
   greetingTitle: {
     fontSize: 26,
     fontWeight: '800',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
     letterSpacing: -0.5,
     marginTop: 2,
   },
@@ -187,9 +247,9 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -201,10 +261,43 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.light.primary,
+    backgroundColor: colors.primary,
   },
   scrollContent: {
     paddingBottom: 100,
+  },
+  lowSupplyBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.dangerLight,
+    borderRadius: 16,
+    padding: 14,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.danger,
+    gap: 10,
+  },
+  lowSupplyIconBg: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lowSupplyTextCol: {
+    flex: 1,
+  },
+  lowSupplyTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: colors.danger,
+  },
+  lowSupplyText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -219,11 +312,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   sectionSubtitle: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     marginTop: 2,
   },
   seeAllBtn: {
@@ -235,29 +328,29 @@ const styles = StyleSheet.create({
   seeAllText: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.light.primary,
+    color: colors.primary,
   },
   doseList: {
     paddingHorizontal: 20,
   },
   emptyCard: {
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 28,
     marginHorizontal: 20,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   emptyTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
     marginTop: 12,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 6,
     lineHeight: 18,
@@ -266,7 +359,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: Colors.light.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 12,
@@ -283,10 +376,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: Colors.light.primary,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.light.primaryDark,
+    shadowColor: colors.primaryDark,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 10,

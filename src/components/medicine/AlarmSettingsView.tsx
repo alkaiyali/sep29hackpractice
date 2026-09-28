@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, Switch, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ReminderSettings, AlertSound, VibrationPattern } from '../../types/medicine';
-import { Colors } from '../../constants/colors';
+import { ThemeColors } from '../../constants/colors';
+import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 import { audioHapticsService } from '../../services/audioHaptics';
 
 interface AlarmSettingsViewProps {
@@ -30,6 +31,8 @@ export const AlarmSettingsView: React.FC<AlarmSettingsViewProps> = ({
   settings,
   onChange,
 }) => {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const toggleSound = (val: boolean) => {
     onChange({ ...settings, soundEnabled: val });
   };
@@ -65,7 +68,7 @@ export const AlarmSettingsView: React.FC<AlarmSettingsViewProps> = ({
               <Ionicons
                 name={settings.soundEnabled ? 'volume-high' : 'volume-mute'}
                 size={18}
-                color={Colors.light.primary}
+                color={colors.primary}
               />
             </View>
             <View>
@@ -76,7 +79,7 @@ export const AlarmSettingsView: React.FC<AlarmSettingsViewProps> = ({
           <Switch
             value={settings.soundEnabled}
             onValueChange={toggleSound}
-            trackColor={{ false: Colors.light.surfaceBorder, true: Colors.light.primary }}
+            trackColor={{ false: colors.surfaceBorder, true: colors.primary }}
             thumbColor="#FFFFFF"
           />
         </View>
@@ -110,7 +113,7 @@ export const AlarmSettingsView: React.FC<AlarmSettingsViewProps> = ({
               <Ionicons
                 name={settings.vibrationEnabled ? 'phone-portrait' : 'phone-portrait-outline'}
                 size={18}
-                color={Colors.light.accent}
+                color={colors.accent}
               />
             </View>
             <View>
@@ -121,7 +124,7 @@ export const AlarmSettingsView: React.FC<AlarmSettingsViewProps> = ({
           <Switch
             value={settings.vibrationEnabled}
             onValueChange={toggleVibration}
-            trackColor={{ false: Colors.light.surfaceBorder, true: Colors.light.accent }}
+            trackColor={{ false: colors.surfaceBorder, true: colors.accent }}
             thumbColor="#FFFFFF"
           />
         </View>
@@ -152,7 +155,7 @@ export const AlarmSettingsView: React.FC<AlarmSettingsViewProps> = ({
         <View style={styles.settingRow}>
           <View style={styles.settingInfo}>
             <View style={styles.iconCircle}>
-              <Ionicons name="timer-outline" size={18} color={Colors.light.warning} />
+              <Ionicons name="timer-outline" size={18} color={colors.warning} />
             </View>
             <View>
               <Text style={styles.settingTitle}>Snooze Duration</Text>
@@ -183,16 +186,17 @@ export const AlarmSettingsView: React.FC<AlarmSettingsViewProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: {
     gap: 12,
   },
   sectionBlock: {
-    backgroundColor: Colors.light.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   settingRow: {
     flexDirection: 'row',
@@ -216,11 +220,11 @@ const styles = StyleSheet.create({
   settingTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   settingSub: {
     fontSize: 12,
-    color: Colors.light.textMuted,
+    color: colors.textMuted,
     marginTop: 1,
   },
   chipsRow: {
@@ -230,7 +234,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.surfaceBorder,
+    borderTopColor: colors.surfaceBorder,
   },
   chip: {
     paddingHorizontal: 12,
@@ -238,31 +242,31 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   selectedChip: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   selectedAccentChip: {
-    backgroundColor: Colors.light.accent,
-    borderColor: Colors.light.accent,
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
   },
   selectedWarningChip: {
-    backgroundColor: Colors.light.warningLight,
-    borderColor: Colors.light.warning,
+    backgroundColor: colors.warningLight,
+    borderColor: colors.warning,
   },
   chipText: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
   },
   selectedChipText: {
     color: '#FFFFFF',
     fontWeight: '700',
   },
   selectedWarningText: {
-    color: Colors.light.warning,
+    color: colors.warning,
     fontWeight: '700',
   },
 });

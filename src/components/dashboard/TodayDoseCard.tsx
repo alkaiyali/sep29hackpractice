@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { TodayDoseItem } from '../../store/medicineStore';
-import { Colors } from '../../constants/colors';
+import { ThemeColors } from '../../constants/colors';
+import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 import { Badge } from '../ui/Badge';
 
 interface TodayDoseCardProps {
@@ -22,7 +23,10 @@ export const TodayDoseCard: React.FC<TodayDoseCardProps> = ({
   onSkip,
   onPressCard,
 }) => {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const { medicine, timeStr, status } = item;
+  const isMissed = status === 'missed';
 
   const getFormIconName = (form: string): keyof typeof Ionicons.glyphMap => {
     switch (form) {
@@ -55,6 +59,8 @@ export const TodayDoseCard: React.FC<TodayDoseCardProps> = ({
         return <Badge label="⏰ Snoozed" variant="warning" />;
       case 'skipped':
         return <Badge label="✕ Skipped" variant="neutral" />;
+      case 'missed':
+        return <Badge label="⚠ Missed" variant="danger" />;
       default:
         return <Badge label="Scheduled" variant="primary" />;
     }
@@ -69,18 +75,19 @@ export const TodayDoseCard: React.FC<TodayDoseCardProps> = ({
       style={[
         styles.card,
         isCompleted && styles.completedCard,
+        isMissed && styles.missedCard,
       ]}
     >
       <View style={styles.headerRow}>
         <View style={styles.timeBadgeContainer}>
-          <Ionicons name="time-outline" size={14} color={Colors.light.primaryDark} />
+          <Ionicons name="time-outline" size={14} color={colors.primaryDark} />
           <Text style={styles.timeText}>{formatDisplayTime(timeStr)}</Text>
         </View>
 
         <View style={styles.statusAndMember}>
           {memberName && (
             <View style={styles.memberTag}>
-              <Ionicons name="people-outline" size={12} color={Colors.light.accent} />
+              <Ionicons name="people-outline" size={12} color={colors.accent} />
               <Text style={styles.memberNameText}>{memberName}</Text>
             </View>
           )}
@@ -93,7 +100,7 @@ export const TodayDoseCard: React.FC<TodayDoseCardProps> = ({
           <Image source={{ uri: medicine.photoUri }} style={styles.medicinePhoto} />
         ) : (
           <View style={styles.iconCircle}>
-            <Ionicons name={getFormIconName(medicine.form)} size={24} color={Colors.light.primary} />
+            <Ionicons name={getFormIconName(medicine.form)} size={24} color={colors.primary} />
           </View>
         )}
 
@@ -122,15 +129,16 @@ export const TodayDoseCard: React.FC<TodayDoseCardProps> = ({
             <Text style={styles.takeBtnText}>Take</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.snoozeBtn]}
-            onPress={onSnooze}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="time" size={16} color={Colors.light.warning} />
-            <Text style={styles.snoozeBtnText}>Snooze ({medicine.reminderSettings.snoozeMinutes}m)</Text>
-          </TouchableOpacity>
-
+          {!isMissed && (
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.snoozeBtn]}
+              onPress={onSnooze}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="time" size={16} color={colors.warning} />
+              <Text style={styles.snoozeBtnText}>Snooze ({medicine.reminderSettings.snoozeMinutes}m)</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             style={[styles.actionBtn, styles.skipBtn]}
             onPress={onSkip}
@@ -144,7 +152,7 @@ export const TodayDoseCard: React.FC<TodayDoseCardProps> = ({
           <Ionicons
             name={status === 'taken' ? 'checkmark-circle-outline' : 'close-circle-outline'}
             size={16}
-            color={status === 'taken' ? Colors.light.success : Colors.light.textMuted}
+            color={status === 'taken' ? colors.success : colors.textMuted}
           />
           <Text style={styles.completedFooterText}>
             {status === 'taken' ? 'Dose recorded successfully' : 'Dose marked as skipped'}
@@ -155,15 +163,16 @@ export const TodayDoseCard: React.FC<TodayDoseCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   card: {
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderRadius: 18,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
-    shadowColor: Colors.light.textPrimary,
+    borderColor: colors.surfaceBorder,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -174,6 +183,10 @@ const styles = StyleSheet.create({
     borderColor: '#E6F4EA',
     opacity: 0.9,
   },
+  missedCard: {
+    borderColor: colors.danger,
+    backgroundColor: '#FFF8FA',
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -183,7 +196,7 @@ const styles = StyleSheet.create({
   timeBadgeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.primarySoft,
+    backgroundColor: colors.primarySoft,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -192,7 +205,7 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: 13,
     fontWeight: '700',
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
   },
   statusAndMember: {
     flexDirection: 'row',
@@ -202,7 +215,7 @@ const styles = StyleSheet.create({
   memberTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.accentLight,
+    backgroundColor: colors.accentLight,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -211,7 +224,7 @@ const styles = StyleSheet.create({
   memberNameText: {
     fontSize: 11,
     fontWeight: '600',
-    color: Colors.light.accent,
+    color: colors.accent,
   },
   bodyRow: {
     flexDirection: 'row',
@@ -222,7 +235,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 14,
-    backgroundColor: Colors.light.primarySoft,
+    backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -230,7 +243,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 14,
-    backgroundColor: Colors.light.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
   },
   detailsCol: {
     flex: 1,
@@ -238,21 +251,21 @@ const styles = StyleSheet.create({
   nameText: {
     fontSize: 17,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
     marginBottom: 2,
   },
   completedText: {
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
   },
   dosageText: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
     marginBottom: 3,
   },
   instructionText: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     textTransform: 'capitalize',
   },
   actionsRow: {
@@ -262,7 +275,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.surfaceBorder,
+    borderTopColor: colors.surfaceBorder,
   },
   actionBtn: {
     flexDirection: 'row',
@@ -273,7 +286,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   takeBtn: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: colors.primary,
     flex: 2,
     gap: 6,
   },
@@ -283,21 +296,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   snoozeBtn: {
-    backgroundColor: Colors.light.warningLight,
+    backgroundColor: colors.warningLight,
     flex: 2,
     gap: 4,
   },
   snoozeBtnText: {
-    color: Colors.light.warning,
+    color: colors.warning,
     fontWeight: '600',
     fontSize: 13,
   },
   skipBtn: {
-    backgroundColor: Colors.light.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     flex: 1,
   },
   skipBtnText: {
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     fontWeight: '600',
     fontSize: 13,
   },
@@ -312,6 +325,6 @@ const styles = StyleSheet.create({
   },
   completedFooterText: {
     fontSize: 12,
-    color: Colors.light.textMuted,
+    color: colors.textMuted,
   },
 });

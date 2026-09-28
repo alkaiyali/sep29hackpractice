@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
-import { Colors } from '../../constants/colors';
+import { ThemeColors } from '../../constants/colors';
+import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 
 interface BadgeProps {
   label: string;
@@ -9,6 +10,8 @@ interface BadgeProps {
 }
 
 export const Badge: React.FC<BadgeProps> = ({ label, variant = 'primary', style }) => {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const getBadgeStyle = () => {
     switch (variant) {
       case 'success':
@@ -33,7 +36,8 @@ export const Badge: React.FC<BadgeProps> = ({ label, variant = 'primary', style 
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -45,33 +49,33 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   primaryBg: {
-    backgroundColor: Colors.light.primaryLight,
+    backgroundColor: colors.primaryLight,
   },
   primaryText: {
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
   },
   successBg: {
-    backgroundColor: Colors.light.successLight,
+    backgroundColor: colors.successLight,
   },
   successText: {
-    color: Colors.light.success,
+    color: colors.success,
   },
   warningBg: {
-    backgroundColor: Colors.light.warningLight,
+    backgroundColor: colors.warningLight,
   },
   warningText: {
-    color: Colors.light.warning,
+    color: colors.warning,
   },
   dangerBg: {
-    backgroundColor: Colors.light.dangerLight,
+    backgroundColor: colors.dangerLight,
   },
   dangerText: {
-    color: Colors.light.danger,
+    color: colors.danger,
   },
   neutralBg: {
-    backgroundColor: Colors.light.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
   },
   neutralText: {
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
   },
 });

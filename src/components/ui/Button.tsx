@@ -7,7 +7,8 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { Colors } from '../../constants/colors';
+import { ThemeColors } from '../../constants/colors';
+import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 
 interface ButtonProps {
   title: string;
@@ -32,6 +33,8 @@ export const Button: React.FC<ButtonProps> = ({
   textStyle,
   icon,
 }) => {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const getContainerStyle = (): ViewStyle[] => {
     const list: ViewStyle[] = [styles.base];
 
@@ -120,7 +123,7 @@ export const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'outline' || variant === 'ghost' ? Colors.light.primary : '#FFFFFF'}
+          color={variant === 'outline' || variant === 'ghost' ? colors.primary : '#FFFFFF'}
         />
       ) : (
         <>
@@ -132,7 +135,8 @@ export const Button: React.FC<ButtonProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   base: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -156,18 +160,18 @@ const styles = StyleSheet.create({
     minHeight: 56,
   },
   primary: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: colors.primary,
   },
   secondary: {
-    backgroundColor: Colors.light.primarySoft,
+    backgroundColor: colors.primarySoft,
   },
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 1.5,
-    borderColor: Colors.light.primary,
+    borderColor: colors.primary,
   },
   danger: {
-    backgroundColor: Colors.light.danger,
+    backgroundColor: colors.danger,
   },
   ghost: {
     backgroundColor: 'transparent',
@@ -192,10 +196,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   textSecondary: {
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
   },
   textOutline: {
-    color: Colors.light.primary,
+    color: colors.primary,
   },
   textDanger: {
     color: '#FFFFFF',

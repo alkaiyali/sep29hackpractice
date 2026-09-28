@@ -1,5 +1,8 @@
 export type DoseStatus = 'taken' | 'skipped' | 'snoozed';
 
+/** Status shown in the UI: logged statuses plus computed ones. */
+export type DoseDisplayStatus = DoseStatus | 'pending' | 'missed';
+
 export interface MedicationLog {
   id: string;
   medicineId: string;
@@ -16,5 +19,6 @@ export interface DailyAdherenceSummary {
   taken: number;
   skipped: number;
   snoozed: number;
+  missed: number;
   percentage: number;
 }

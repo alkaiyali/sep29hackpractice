@@ -56,7 +56,8 @@
           "icon": "./assets/notification-icon.png",
           "color": "#0D9488"
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "web": {
       "favicon": "./assets/icon.png",

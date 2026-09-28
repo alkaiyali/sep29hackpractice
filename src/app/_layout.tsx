@@ -6,8 +6,21 @@ import { useMedicineStore } from '../store/medicineStore';
 import { useCareCircleStore } from '../store/careCircleStore';
 import { useUserStore } from '../store/userStore';
 import { notificationService } from '../services/notifications';
+import { ThemeProvider, useTheme } from '../theme/ThemeProvider';
 
 export default function RootLayout() {
+  return (
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <RootNavigator />
+      </ThemeProvider>
+    </SafeAreaProvider>
+  );
+}
+
+function RootNavigator() {
+  const { colors, scheme } = useTheme();
+
   const loadMedicines = useMedicineStore((s) => s.loadData);
   const loadCircles = useCareCircleStore((s) => s.loadData);
   const loadUser = useUserStore((s) => s.loadData);
@@ -21,15 +34,15 @@ export default function RootLayout() {
     };
 
     initApp();
-  }, []);
+  }, [loadMedicines, loadCircles, loadUser]);
 
   return (
-    <SafeAreaProvider>
-      <StatusBar style="dark" />
+    <>
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: '#F8FAFC' },
+          contentStyle: { backgroundColor: colors.background },
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -47,7 +60,8 @@ export default function RootLayout() {
             headerShown: false,
           }}
         />
+        <Stack.Screen name="history" options={{ headerShown: false }} />
       </Stack>
-    </SafeAreaProvider>
+    </>
   );
 }

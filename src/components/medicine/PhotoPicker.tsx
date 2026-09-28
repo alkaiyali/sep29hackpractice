@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { ThemeColors } from '../../constants/colors';
+import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 import { cameraService } from '../../services/camera';
 
 interface PhotoPickerProps {
@@ -10,6 +11,8 @@ interface PhotoPickerProps {
 }
 
 export const PhotoPicker: React.FC<PhotoPickerProps> = ({ photoUri, onPhotoSelected }) => {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const handleTakePhoto = async () => {
     const uri = await cameraService.takePhotoWithCamera();
     if (uri) {
@@ -51,7 +54,7 @@ export const PhotoPicker: React.FC<PhotoPickerProps> = ({ photoUri, onPhotoSelec
             activeOpacity={0.7}
           >
             <View style={styles.iconCircle}>
-              <Ionicons name="camera-outline" size={22} color={Colors.light.primary} />
+              <Ionicons name="camera-outline" size={22} color={colors.primary} />
             </View>
             <Text style={styles.pickerBtnText}>Take Photo</Text>
             <Text style={styles.pickerBtnSub}>Snap pill or bottle</Text>
@@ -63,7 +66,7 @@ export const PhotoPicker: React.FC<PhotoPickerProps> = ({ photoUri, onPhotoSelec
             activeOpacity={0.7}
           >
             <View style={styles.iconCircle}>
-              <Ionicons name="images-outline" size={22} color={Colors.light.accent} />
+              <Ionicons name="images-outline" size={22} color={colors.accent} />
             </View>
             <Text style={styles.pickerBtnText}>Use Gallery</Text>
             <Text style={styles.pickerBtnSub}>Choose from library</Text>
@@ -74,7 +77,8 @@ export const PhotoPicker: React.FC<PhotoPickerProps> = ({ photoUri, onPhotoSelec
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: {
     marginVertical: 4,
   },
@@ -89,10 +93,10 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 12,
     borderRadius: 14,
-    backgroundColor: Colors.light.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   iconCircle: {
     width: 44,
@@ -106,11 +110,11 @@ const styles = StyleSheet.create({
   pickerBtnText: {
     fontSize: 14,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   pickerBtnSub: {
     fontSize: 11,
-    color: Colors.light.textMuted,
+    color: colors.textMuted,
     marginTop: 2,
   },
   previewContainer: {
@@ -124,7 +128,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 180,
     borderRadius: 16,
-    backgroundColor: Colors.light.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
   },
   removeBtn: {
     position: 'absolute',

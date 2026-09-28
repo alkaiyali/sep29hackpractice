@@ -6,6 +6,7 @@ export const StorageKeys = {
   CARE_CIRCLES: '@meddy_care_circles_v1',
   ACTIVE_CIRCLE_ID: '@meddy_active_circle_id_v1',
   USER_PROFILE: '@meddy_user_profile_v1',
+  THEME_PREF: '@meddy_theme_pref_v1',
 };
 
 export const safeStorage = {

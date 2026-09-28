@@ -160,6 +160,35 @@ export const notificationService = {
     }
   },
 
+  async notifyLowSupply(medicine: Medicine, remaining: number): Promise<void> {
+    if (Platform.OS === 'web') {
+      alert(`Low supply: only ${remaining} left of ${medicine.name}. Time to request a refill.`);
+      return;
+    }
+
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: `⚠️ Low Supply: ${medicine.name}`,
+          body: `Only ${remaining} ${remaining === 1 ? 'dose' : 'doses'} left. Time to request a refill!`,
+          data: {
+            medicineId: medicine.id,
+            lowSupply: true,
+          },
+          sound: 'default',
+          priority: Notifications.AndroidNotificationPriority.HIGH,
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: 1,
+          repeats: false,
+        },
+      });
+    } catch (err) {
+      console.warn('[notificationService] Error sending low-supply alert:', err);
+    }
+  },
+
   async triggerTestAlarm(title: string = 'Meddy Test Reminder', body: string = '500mg Amoxicillin - Take with water'): Promise<void> {
     if (Platform.OS === 'web') {
       alert(`[Notification] ${title}: ${body}`);

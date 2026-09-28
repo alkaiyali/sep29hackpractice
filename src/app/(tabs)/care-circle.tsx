@@ -16,11 +16,14 @@ import QRCode from 'react-native-qrcode-svg';
 import { useCareCircleStore } from '../../store/careCircleStore';
 import { useMedicineStore } from '../../store/medicineStore';
 import { useUserStore } from '../../store/userStore';
-import { Colors } from '../../constants/colors';
+import { ThemeColors } from '../../constants/colors';
+import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 import { Header } from '../../components/ui/Header';
 import { MemberRelation } from '../../types/careCircle';
 
 export default function CareCircleScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
@@ -107,7 +110,7 @@ export default function CareCircleScreen() {
                 style={styles.newCircleBtn}
                 onPress={() => setShowCreateModal(true)}
               >
-                <Ionicons name="add" size={16} color={Colors.light.primary} />
+                <Ionicons name="add" size={16} color={colors.primary} />
                 <Text style={styles.newCircleBtnText}>New Circle</Text>
               </TouchableOpacity>
             </View>
@@ -119,7 +122,7 @@ export default function CareCircleScreen() {
                   <QRCode
                     value={qrPayload}
                     size={160}
-                    color={Colors.light.primaryDark}
+                    color={colors.primaryDark}
                     backgroundColor="#FFFFFF"
                   />
                 </View>
@@ -131,7 +134,7 @@ export default function CareCircleScreen() {
           </View>
         ) : (
           <View style={styles.emptyCircleOnboarding}>
-            <Ionicons name="people-circle-outline" size={60} color={Colors.light.primary} />
+            <Ionicons name="people-circle-outline" size={60} color={colors.primary} />
             <Text style={styles.emptyOnboardingTitle}>Start Your Care Circle</Text>
             <Text style={styles.emptyOnboardingSub}>
               Connect with family, children, or elderly parents to coordinate and monitor medications collaboratively.
@@ -148,7 +151,7 @@ export default function CareCircleScreen() {
                 style={styles.scanFirstCircleBtn}
                 onPress={() => router.push('/care-circle/scan')}
               >
-                <Ionicons name="qr-code-outline" size={18} color={Colors.light.primary} />
+                <Ionicons name="qr-code-outline" size={18} color={colors.primary} />
                 <Text style={styles.scanFirstCircleBtnText}>Join via QR</Text>
               </TouchableOpacity>
             </View>
@@ -167,7 +170,7 @@ export default function CareCircleScreen() {
             style={styles.addMemberBtn}
             onPress={() => setShowAddMemberModal(true)}
           >
-            <Ionicons name="person-add-outline" size={16} color={Colors.light.primary} />
+            <Ionicons name="person-add-outline" size={16} color={colors.primary} />
             <Text style={styles.addMemberBtnText}>Add Member</Text>
           </TouchableOpacity>
         </View>
@@ -191,7 +194,7 @@ export default function CareCircleScreen() {
                 style={styles.addMedToMemberBtn}
                 onPress={() => router.push('/medicine/add')}
               >
-                <Ionicons name="medkit-outline" size={16} color={Colors.light.primary} />
+                <Ionicons name="medkit-outline" size={16} color={colors.primary} />
                 <Text style={styles.addMedToMemberBtnText}>+ Med</Text>
               </TouchableOpacity>
             </View>
@@ -208,14 +211,14 @@ export default function CareCircleScreen() {
             style={styles.addMemberBtn}
             onPress={() => router.push('/medicine/add')}
           >
-            <Ionicons name="add" size={16} color={Colors.light.primary} />
+            <Ionicons name="add" size={16} color={colors.primary} />
             <Text style={styles.addMemberBtnText}>Schedule Med</Text>
           </TouchableOpacity>
         </View>
 
         {circleMedicines.length === 0 ? (
           <View style={styles.emptyCircleMeds}>
-            <Ionicons name="heart-circle-outline" size={48} color={Colors.light.textMuted} />
+            <Ionicons name="heart-circle-outline" size={48} color={colors.textMuted} />
             <Text style={styles.emptyCircleMedsTitle}>No Loved Ones' Meds Scheduled</Text>
             <Text style={styles.emptyCircleMedsSub}>
               Assign and monitor prescriptions for your loved ones with automatic reminder alerts.
@@ -237,7 +240,7 @@ export default function CareCircleScreen() {
                   <View style={styles.circleMedHeader}>
                     <View style={styles.circleMedLeft}>
                       <View style={styles.pillIconBg}>
-                        <Ionicons name="medkit" size={18} color={Colors.light.primary} />
+                        <Ionicons name="medkit" size={18} color={colors.primary} />
                       </View>
                       <View>
                         <Text style={styles.circleMedName}>{med.name}</Text>
@@ -273,7 +276,7 @@ export default function CareCircleScreen() {
             <TextInput
               style={styles.modalInput}
               placeholder="Circle Name"
-              placeholderTextColor={Colors.light.textMuted}
+              placeholderTextColor={colors.textMuted}
               value={newCircleName}
               onChangeText={setNewCircleName}
             />
@@ -304,7 +307,7 @@ export default function CareCircleScreen() {
             <TextInput
               style={styles.modalInput}
               placeholder="Member Name"
-              placeholderTextColor={Colors.light.textMuted}
+              placeholderTextColor={colors.textMuted}
               value={memberName}
               onChangeText={setMemberName}
             />
@@ -355,15 +358,16 @@ export default function CareCircleScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background,
   },
   scanBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
@@ -380,12 +384,12 @@ const styles = StyleSheet.create({
     gap: 22,
   },
   qrCard: {
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
-    shadowColor: Colors.light.textPrimary,
+    borderColor: colors.surfaceBorder,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -403,18 +407,18 @@ const styles = StyleSheet.create({
   qrCircleName: {
     fontSize: 20,
     fontWeight: '800',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   qrSub: {
     fontSize: 13,
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
     fontWeight: '600',
     marginTop: 2,
   },
   newCircleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.primarySoft,
+    backgroundColor: colors.primarySoft,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
@@ -423,7 +427,7 @@ const styles = StyleSheet.create({
   newCircleBtnText: {
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
   },
   qrCodeWrapper: {
     alignItems: 'center',
@@ -434,7 +438,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -443,7 +447,7 @@ const styles = StyleSheet.create({
   },
   qrInstructions: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 12,
     lineHeight: 18,
@@ -457,11 +461,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   sectionSubtitle: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     marginTop: 2,
   },
   addMemberBtn: {
@@ -473,7 +477,7 @@ const styles = StyleSheet.create({
   addMemberBtnText: {
     fontSize: 13,
     fontWeight: '700',
-    color: Colors.light.primary,
+    color: colors.primary,
   },
   membersList: {
     gap: 10,
@@ -481,11 +485,11 @@ const styles = StyleSheet.create({
   memberCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     padding: 14,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
     gap: 12,
   },
   avatar: {
@@ -511,10 +515,10 @@ const styles = StyleSheet.create({
   memberName: {
     fontSize: 15,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   ownerBadge: {
-    backgroundColor: Colors.light.primarySoft,
+    backgroundColor: colors.primarySoft,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
@@ -522,18 +526,18 @@ const styles = StyleSheet.create({
   ownerBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
   },
   memberRelation: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     marginTop: 2,
   },
   addMedToMemberBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: Colors.light.primarySoft,
+    backgroundColor: colors.primarySoft,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
@@ -541,25 +545,25 @@ const styles = StyleSheet.create({
   addMedToMemberBtnText: {
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
   },
   emptyCircleMeds: {
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderRadius: 18,
     padding: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
     gap: 8,
   },
   emptyCircleMedsTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   emptyCircleMedsSub: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 18,
   },
@@ -567,7 +571,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: Colors.light.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
@@ -582,11 +586,11 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   circleMedCard: {
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
     gap: 8,
   },
   circleMedHeader: {
@@ -604,22 +608,22 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: Colors.light.primarySoft,
+    backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
   circleMedName: {
     fontSize: 15,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   circleMedDosage: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     textTransform: 'capitalize',
   },
   forMemberBadge: {
-    backgroundColor: Colors.light.accentLight,
+    backgroundColor: colors.accentLight,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -627,23 +631,23 @@ const styles = StyleSheet.create({
   forMemberBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: Colors.light.accent,
+    color: colors.accent,
   },
   circleMedFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.surfaceBorder,
+    borderTopColor: colors.surfaceBorder,
   },
   circleMedTimes: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
   },
   circleMedSound: {
     fontSize: 11,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
   },
   modalOverlay: {
     flex: 1,
@@ -660,26 +664,26 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   modalSub: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
   },
   modalInput: {
-    backgroundColor: Colors.light.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   relationLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
     marginTop: 4,
   },
   relationRow: {
@@ -691,18 +695,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: Colors.light.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   relationChipActive: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   relationChipText: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
   },
   relationChipTextActive: {
     color: '#FFFFFF',
@@ -718,11 +722,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   modalCancelText: {
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     fontWeight: '600',
   },
   modalConfirmBtn: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: colors.primary,
     paddingVertical: 10,
     paddingHorizontal: 18,
     borderRadius: 12,
@@ -732,14 +736,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   emptyCircleOnboarding: {
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
     gap: 10,
-    shadowColor: Colors.light.textPrimary,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -748,11 +752,11 @@ const styles = StyleSheet.create({
   emptyOnboardingTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   emptyOnboardingSub: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 18,
     paddingHorizontal: 10,
@@ -769,7 +773,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: Colors.light.primary,
+    backgroundColor: colors.primary,
     paddingVertical: 12,
     borderRadius: 12,
   },
@@ -784,12 +788,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: Colors.light.primarySoft,
+    backgroundColor: colors.primarySoft,
     paddingVertical: 12,
     borderRadius: 12,
   },
   scanFirstCircleBtnText: {
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
     fontSize: 13,
     fontWeight: '700',
   },

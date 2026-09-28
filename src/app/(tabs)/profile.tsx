@@ -13,16 +13,22 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useUserStore } from '../../store/userStore';
-import { Colors } from '../../constants/colors';
+import { useMedicineStore } from '../../store/medicineStore';
+import { exportDoctorReport } from '../../services/report';
+import { ThemeColors } from '../../constants/colors';
+import { useTheme, useThemedStyles, ThemePreference } from '../../theme/ThemeProvider';
 import { Header } from '../../components/ui/Header';
 import { notificationService } from '../../services/notifications';
 import { audioHapticsService } from '../../services/audioHaptics';
 
 export default function ProfileScreen() {
+  const { preference, setPreference, colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const { profile, updateProfile, toggleNotifications, resetAllData } = useUserStore();
 
   const [testingAlarm, setTestingAlarm] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState(profile.name);
   const [editEmergency, setEditEmergency] = useState(profile.emergencyContactPhone || '');
@@ -56,6 +62,24 @@ export default function ProfileScreen() {
     });
     setShowEditModal(false);
     Alert.alert('Saved', 'Profile details updated.');
+  };
+
+  const handleExportReport = async () => {
+    try {
+      setExporting(true);
+      const { getDoseHistory, medicines, logs } = useMedicineStore.getState();
+      await exportDoctorReport({
+        profile,
+        medicines,
+        summaries: getDoseHistory(30),
+        logs,
+      });
+    } catch (err) {
+      console.warn('Error exporting report:', err);
+      Alert.alert('Export Failed', 'Could not generate the report. Please try again.');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const handleResetData = () => {
@@ -92,7 +116,7 @@ export default function ProfileScreen() {
             <Text style={styles.userName}>{profile.name || 'Add your name'}</Text>
             <Text style={styles.userRole}>Primary Account Holder</Text>
             <View style={styles.bloodTypeTag}>
-              <Ionicons name="water" size={13} color={Colors.light.danger} />
+              <Ionicons name="water" size={13} color={colors.danger} />
               <Text style={styles.bloodTypeText}>Blood Type: {profile.bloodType || 'Not set'}</Text>
             </View>
           </View>
@@ -105,15 +129,15 @@ export default function ProfileScreen() {
               setShowEditModal(true);
             }}
           >
-            <Ionicons name="create-outline" size={18} color={Colors.light.primary} />
+            <Ionicons name="create-outline" size={18} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
         {/* Emergency Contact */}
         <View style={styles.sectionCard}>
           <View style={styles.cardTitleRow}>
-            <View style={[styles.cardIconBg, { backgroundColor: Colors.light.dangerLight }]}>
-              <Ionicons name="call-outline" size={18} color={Colors.light.danger} />
+            <View style={[styles.cardIconBg, { backgroundColor: colors.dangerLight }]}>
+              <Ionicons name="call-outline" size={18} color={colors.danger} />
             </View>
             <Text style={styles.cardTitle}>Emergency Contact</Text>
           </View>
@@ -126,8 +150,8 @@ export default function ProfileScreen() {
         {/* Known Allergies */}
         <View style={styles.sectionCard}>
           <View style={styles.cardTitleRow}>
-            <View style={[styles.cardIconBg, { backgroundColor: Colors.light.warningLight }]}>
-              <Ionicons name="alert-circle-outline" size={18} color={Colors.light.warning} />
+            <View style={[styles.cardIconBg, { backgroundColor: colors.warningLight }]}>
+              <Ionicons name="alert-circle-outline" size={18} color={colors.warning} />
             </View>
             <Text style={styles.cardTitle}>Known Drug Allergies</Text>
           </View>
@@ -137,7 +161,7 @@ export default function ProfileScreen() {
             <View style={styles.allergyChipsRow}>
               {profile.allergies.map((allergy) => (
                 <View key={allergy} style={styles.allergyChip}>
-                  <Ionicons name="warning-outline" size={12} color={Colors.light.warning} />
+                  <Ionicons name="warning-outline" size={12} color={colors.warning} />
                   <Text style={styles.allergyChipText}>{allergy}</Text>
                 </View>
               ))}
@@ -149,7 +173,7 @@ export default function ProfileScreen() {
         <View style={styles.sectionCard}>
           <View style={styles.cardTitleRow}>
             <View style={styles.cardIconBg}>
-              <Ionicons name="notifications" size={18} color={Colors.light.primary} />
+              <Ionicons name="notifications" size={18} color={colors.primary} />
             </View>
             <Text style={styles.cardTitle}>Alarm & Notifications</Text>
           </View>
@@ -162,7 +186,7 @@ export default function ProfileScreen() {
             <Switch
               value={profile.notificationsEnabled}
               onValueChange={toggleNotifications}
-              trackColor={{ false: Colors.light.surfaceBorder, true: Colors.light.primary }}
+              trackColor={{ false: colors.surfaceBorder, true: colors.primary }}
               thumbColor="#FFFFFF"
             />
           </View>
@@ -180,6 +204,72 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Appearance / Dark Mode */}
+        <View style={styles.sectionCard}>
+          <View style={styles.cardTitleRow}>
+            <View style={styles.cardIconBg}>
+              <Ionicons name="moon-outline" size={18} color={colors.primary} />
+            </View>
+            <Text style={styles.cardTitle}>Appearance</Text>
+          </View>
+          <View style={styles.themeRow}>
+            {(
+              [
+                { key: 'system', label: 'System', icon: 'phone-portrait-outline' },
+                { key: 'light', label: 'Light', icon: 'sunny-outline' },
+                { key: 'dark', label: 'Dark', icon: 'moon-outline' },
+              ] as { key: ThemePreference; label: string; icon: keyof typeof Ionicons.glyphMap }[]
+            ).map((option) => {
+              const isActive = preference === option.key;
+              return (
+                <TouchableOpacity
+                  key={option.key}
+                  style={[styles.themeChip, isActive && styles.themeChipActive]}
+                  onPress={() => setPreference(option.key)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons
+                    name={option.icon}
+                    size={16}
+                    color={isActive ? '#FFFFFF' : colors.textSecondary}
+                  />
+                  <Text style={[styles.themeChipText, isActive && styles.themeChipTextActive]}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <Text style={styles.themeHint}>
+            Dark mode reduces eye strain for nighttime doses and can follow your device setting.
+          </Text>
+        </View>
+
+        {/* Clinical Reports */}
+        <View style={styles.sectionCard}>
+          <View style={styles.cardTitleRow}>
+            <View style={[styles.cardIconBg, { backgroundColor: colors.accentLight }]}>
+              <Ionicons name="document-text-outline" size={18} color={colors.accent} />
+            </View>
+            <Text style={styles.cardTitle}>Doctor Report</Text>
+          </View>
+          <Text style={styles.reportHint}>
+            Generate a clinical PDF with 30-day adherence, medication schedule, and recent dose
+            activity to share with your physician.
+          </Text>
+          <TouchableOpacity
+            style={styles.exportBtn}
+            onPress={handleExportReport}
+            disabled={exporting}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="share-outline" size={18} color="#FFFFFF" />
+            <Text style={styles.exportBtnText}>
+              {exporting ? 'Generating Report…' : 'Export Adherence PDF'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Reset / Danger Zone */}
         <View style={styles.dangerZone}>
           <TouchableOpacity
@@ -187,7 +277,7 @@ export default function ProfileScreen() {
             onPress={handleResetData}
             activeOpacity={0.7}
           >
-            <Ionicons name="refresh-outline" size={18} color={Colors.light.danger} />
+            <Ionicons name="refresh-outline" size={18} color={colors.danger} />
             <Text style={styles.resetBtnText}>Reset App Data to Defaults</Text>
           </TouchableOpacity>
           <Text style={styles.versionText}>Meddy Health Companion • v1.0.0 (Expo SDK 54)</Text>
@@ -206,7 +296,7 @@ export default function ProfileScreen() {
               value={editName}
               onChangeText={setEditName}
               placeholder="Full Name"
-              placeholderTextColor={Colors.light.textMuted}
+              placeholderTextColor={colors.textMuted}
             />
 
             <Text style={styles.inputLabel}>Emergency Contact Phone</Text>
@@ -215,7 +305,7 @@ export default function ProfileScreen() {
               value={editEmergency}
               onChangeText={setEditEmergency}
               placeholder="Emergency Phone Number"
-              placeholderTextColor={Colors.light.textMuted}
+              placeholderTextColor={colors.textMuted}
               keyboardType="phone-pad"
             />
 
@@ -225,7 +315,7 @@ export default function ProfileScreen() {
               value={editBloodType}
               onChangeText={setEditBloodType}
               placeholder="e.g. O+, A-, B+"
-              placeholderTextColor={Colors.light.textMuted}
+              placeholderTextColor={colors.textMuted}
             />
 
             <View style={styles.modalActions}>
@@ -249,10 +339,11 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background,
   },
   scrollContent: {
     padding: 20,
@@ -262,12 +353,12 @@ const styles = StyleSheet.create({
   userCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 18,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
-    shadowColor: Colors.light.textPrimary,
+    borderColor: colors.surfaceBorder,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -278,7 +369,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: Colors.light.primary,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -293,11 +384,11 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 18,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   userRole: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     marginTop: 1,
   },
   bloodTypeTag: {
@@ -309,19 +400,19 @@ const styles = StyleSheet.create({
   bloodTypeText: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.light.danger,
+    color: colors.danger,
   },
   editBtn: {
     padding: 8,
     borderRadius: 10,
-    backgroundColor: Colors.light.primarySoft,
+    backgroundColor: colors.primarySoft,
   },
   sectionCard: {
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
     gap: 12,
   },
   cardTitleRow: {
@@ -333,31 +424,31 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: Colors.light.primarySoft,
+    backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cardTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: Colors.light.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     padding: 12,
     borderRadius: 12,
   },
   infoLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   infoValue: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     fontWeight: '600',
   },
   allergyChipsRow: {
@@ -367,14 +458,14 @@ const styles = StyleSheet.create({
   },
   noAllergiesText: {
     fontSize: 13,
-    color: Colors.light.textMuted,
+    color: colors.textMuted,
     fontStyle: 'italic',
   },
   allergyChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: Colors.light.warningLight,
+    backgroundColor: colors.warningLight,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 10,
@@ -382,7 +473,7 @@ const styles = StyleSheet.create({
   allergyChipText: {
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.light.warning,
+    color: colors.warning,
   },
   toggleRow: {
     flexDirection: 'row',
@@ -397,11 +488,11 @@ const styles = StyleSheet.create({
   toggleTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   toggleSub: {
     fontSize: 12,
-    color: Colors.light.textMuted,
+    color: colors.textMuted,
     marginTop: 2,
   },
   testAlarmBtn: {
@@ -409,12 +500,65 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: Colors.light.primaryDark,
+    backgroundColor: colors.primaryDark,
     borderRadius: 12,
     paddingVertical: 12,
     marginTop: 4,
   },
   testAlarmBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  themeRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  themeChip: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceSubtle,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
+  themeChipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  themeChipText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  themeChipTextActive: {
+    color: '#FFFFFF',
+  },
+  themeHint: {
+    fontSize: 12,
+    color: colors.textMuted,
+    lineHeight: 17,
+  },
+  reportHint: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    lineHeight: 17,
+  },
+  exportBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginTop: 4,
+  },
+  exportBtnText: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700',
@@ -431,16 +575,16 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: Colors.light.dangerLight,
+    backgroundColor: colors.dangerLight,
   },
   resetBtnText: {
-    color: Colors.light.danger,
+    color: colors.danger,
     fontWeight: '600',
     fontSize: 13,
   },
   versionText: {
     fontSize: 12,
-    color: Colors.light.textMuted,
+    color: colors.textMuted,
   },
   modalOverlay: {
     flex: 1,
@@ -457,24 +601,24 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
     marginBottom: 4,
   },
   inputLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     marginTop: 4,
   },
   modalInput: {
-    backgroundColor: Colors.light.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 14,
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   modalActions: {
     flexDirection: 'row',
@@ -487,11 +631,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   modalCancelText: {
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     fontWeight: '600',
   },
   modalConfirmBtn: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: colors.primary,
     paddingVertical: 10,
     paddingHorizontal: 18,
     borderRadius: 12,

@@ -34,10 +34,20 @@
 
 ### E. State Management & Offline Persistence (`zustand` + `AsyncStorage`)
 - **Zustand Stores**:
-  - `useMedicineStore`: Medicine records, schedule definitions, reminder settings, and medication dose logs.
+  - `useMedicineStore`: Medicine records, schedule definitions, reminder settings, inventory/refill state, computed dose statuses (pending / taken / snoozed / skipped / missed), dose logs, and per-day adherence queries for the history calendar.
   - `useCareCircleStore`: Active circles, joined members, permissions, and cross-member reminders.
   - `useUserStore`: User profile details, alarm preferences, and notification status.
 - **Persistence**: Rehydrates automatically via `@react-native-async-storage/async-storage` ensuring complete offline capability.
+- **Theme Preference**: `ThemeProvider` (`src/theme/ThemeProvider.tsx`) persists `system | light | dark` in AsyncStorage and serves WCAG-compliant palettes into every screen.
+
+### F. Inventory & Refill Alerts (offline)
+- Optional `inventoryCount`, `refillThreshold`, and `pharmacyPhone` per medicine.
+- Each first-time "Take" decrements the count; un-marking a taken dose restores it.
+- Crossing the threshold fires a high-priority local notification (`notificationService.notifyLowSupply`) and a Dashboard refill banner with one-tap `tel:` call when a pharmacy phone is set.
+
+### G. Clinical PDF Reports (`expo-print` & `expo-sharing`)
+- `src/services/report.ts` renders a self-contained HTML adherence report (30-day statistics, medication schedule, recent dose activity, allergies/emergency contact).
+- Native: `Print.printToFileAsync` → `Sharing.shareAsync` (PDF). Web: opens a print-ready window.
 
 ---
 
@@ -67,6 +77,8 @@
     "@expo/vector-icons": "^15.0.3",
     "expo-constants": "~57.0.19",
     "expo-linking": "~57.0.11",
+    "expo-print": "~57.0.2",
+    "expo-sharing": "~57.0.22",
     "react-native-web": "~0.21.0",
     "@expo/metro-runtime": "~57.0.16"
   },

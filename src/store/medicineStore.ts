@@ -1,17 +1,32 @@
 import { create } from 'zustand';
 import { Medicine } from '../types/medicine';
-import { MedicationLog, DailyAdherenceSummary, DoseStatus } from '../types/log';
+import { MedicationLog, DailyAdherenceSummary, DoseDisplayStatus, DoseStatus } from '../types/log';
 import { safeStorage, StorageKeys } from '../services/storage';
 import { notificationService } from '../services/notifications';
 import { audioHapticsService } from '../services/audioHaptics';
 import { INITIAL_MEDICINES } from '../constants/defaultData';
 
+/** A scheduled dose is considered missed this long after its time if never logged. */
+export const MISSED_DOSE_GRACE_MINUTES = 60;
+
+/** Fallback low-supply threshold when a medicine tracks inventory but has none set. */
+export const DEFAULT_REFILL_THRESHOLD = 3;
+
 export interface TodayDoseItem {
   id: string; // log id or virtual dose id
   medicine: Medicine;
   timeStr: string; // "08:00"
-  status: DoseStatus | 'pending';
+  status: DoseDisplayStatus;
   logId?: string;
+  actionTime?: string;
+}
+
+/** Local-time YYYY-MM-DD (safe across timezones, unlike toISOString). */
+export function toLocalDateStr(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 interface MedicineState {
@@ -24,8 +39,12 @@ interface MedicineState {
   updateMedicine: (id: string, updates: Partial<Medicine>) => Promise<void>;
   deleteMedicine: (id: string) => Promise<void>;
   logDose: (medicineId: string, memberId: string, timeStr: string, status: DoseStatus, notes?: string) => Promise<void>;
+  getDosesForDate: (date: Date) => TodayDoseItem[];
   getTodayDoses: () => TodayDoseItem[];
+  getAdherenceForDate: (date: Date) => DailyAdherenceSummary;
   getTodayAdherence: () => DailyAdherenceSummary;
+  getDoseHistory: (days?: number) => DailyAdherenceSummary[];
+  getLowSupplyMedicines: () => Medicine[];
   getStreakDays: () => number;
 }
 
@@ -35,7 +54,7 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
   isLoaded: false,
 
   loadData: async () => {
-    const savedMeds = await safeStorage.getItem<Medicine[]>(StorageKeys.MEDICINES, []);
+    const savedMeds = await safeStorage.getItem<Medicine[]>(StorageKeys.MEDICINES, INITIAL_MEDICINES);
     const savedLogs = await safeStorage.getItem<MedicationLog[]>(StorageKeys.LOGS, []);
     set({ medicines: savedMeds, logs: savedLogs, isLoaded: true });
   },
@@ -100,7 +119,7 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
 
   logDose: async (medicineId, memberId, timeStr, status, notes) => {
     const now = new Date();
-    const todayDateStr = now.toISOString().split('T')[0];
+    const todayDateStr = toLocalDateStr(now);
     const scheduledTime = `${todayDateStr}T${timeStr}:00`;
 
     const medicine = get().medicines.find((m) => m.id === medicineId);
@@ -121,7 +140,7 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
     const existingLogs = get().logs;
     // Check if a log already exists for this exact dose today
     const existingIndex = existingLogs.findIndex(
-      (l) => l.medicineId === medicineId && l.scheduledTime.startsWith(todayDateStr) && l.scheduledTime.includes(timeStr)
+      (l) => l.medicineId === medicineId && l.scheduledTime === scheduledTime
     );
 
     let updatedLogs: MedicationLog[];
@@ -146,39 +165,71 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
       updatedLogs = [newLog, ...existingLogs];
     }
 
+    // Inventory: decrement on first "taken", restore if un-taken.
+    const previousStatus = existingIndex >= 0 ? existingLogs[existingIndex].status : undefined;
+    const becameTaken = status === 'taken' && previousStatus !== 'taken';
+    const unTaken = status !== 'taken' && previousStatus === 'taken';
+
     set({ logs: updatedLogs });
     await safeStorage.setItem(StorageKeys.LOGS, updatedLogs);
+
+    if (medicine && (becameTaken || unTaken) && medicine.inventoryCount != null) {
+      const delta = becameTaken ? -1 : 1;
+      const prevCount = medicine.inventoryCount;
+      const newCount = Math.max(0, prevCount + delta);
+      const threshold = medicine.refillThreshold ?? DEFAULT_REFILL_THRESHOLD;
+      const updatedMedicines = get().medicines.map((m) =>
+        m.id === medicineId ? { ...m, inventoryCount: newCount } : m
+      );
+      set({ medicines: updatedMedicines });
+      await safeStorage.setItem(StorageKeys.MEDICINES, updatedMedicines);
+
+      // Crossing into low supply → alert once per crossing
+      if (delta === -1 && newCount <= threshold && prevCount > threshold) {
+        await notificationService.notifyLowSupply({ ...medicine, inventoryCount: newCount }, newCount);
+      }
+    }
   },
 
-  getTodayDoses: () => {
-    const today = new Date();
-    const currentWeekday = today.getDay(); // 0=Sun, ..., 6=Sat
-    const todayDateStr = today.toISOString().split('T')[0];
+  getDosesForDate: (date) => {
+    const dateStr = toLocalDateStr(date);
+    const weekday = date.getDay(); // 0=Sun, ..., 6=Sat
     const { medicines, logs } = get();
+    const now = Date.now();
+    const graceMs = MISSED_DOSE_GRACE_MINUTES * 60 * 1000;
 
     const items: TodayDoseItem[] = [];
 
     medicines.forEach((med) => {
-      // Check if scheduled for today's weekday
-      if (med.daysOfWeek.includes(currentWeekday)) {
-        med.scheduleTimes.forEach((timeStr) => {
-          // Look up corresponding log
-          const log = logs.find(
-            (l) =>
-              l.medicineId === med.id &&
-              l.scheduledTime.startsWith(todayDateStr) &&
-              l.scheduledTime.includes(timeStr)
-          );
+      // Don't project medicines into days before they were created
+      if (toLocalDateStr(new Date(med.createdAt)) > dateStr) return;
 
-          items.push({
-            id: `${med.id}_${timeStr}`,
-            medicine: med,
-            timeStr,
-            status: log ? log.status : 'pending',
-            logId: log?.id,
-          });
+      // Check if scheduled for this weekday
+      if (!med.daysOfWeek.includes(weekday)) return;
+
+      med.scheduleTimes.forEach((timeStr) => {
+        // Look up corresponding log (exact scheduled timestamp match)
+        const log = logs.find(
+          (l) =>
+            l.medicineId === med.id &&
+            l.scheduledTime === `${dateStr}T${timeStr}:00`
+        );
+
+        let status: DoseDisplayStatus = log ? log.status : 'pending';
+        if (!log) {
+          const scheduledMs = new Date(`${dateStr}T${timeStr}:00`).getTime();
+          if (now > scheduledMs + graceMs) status = 'missed';
+        }
+
+        items.push({
+          id: `${med.id}_${timeStr}`,
+          medicine: med,
+          timeStr,
+          status,
+          logId: log?.id,
+          actionTime: log?.actionTime,
         });
-      }
+      });
     });
 
     // Sort items chronologically by timeStr ("08:00", "12:00", "20:00")
@@ -187,25 +238,48 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
     return items;
   },
 
-  getTodayAdherence: () => {
-    const doses = get().getTodayDoses();
-    const todayDateStr = new Date().toISOString().split('T')[0];
+  getTodayDoses: () => get().getDosesForDate(new Date()),
+
+  getAdherenceForDate: (date) => {
+    const doses = get().getDosesForDate(date);
 
     const totalDue = doses.length;
     const taken = doses.filter((d) => d.status === 'taken').length;
     const skipped = doses.filter((d) => d.status === 'skipped').length;
     const snoozed = doses.filter((d) => d.status === 'snoozed').length;
+    const missed = doses.filter((d) => d.status === 'missed').length;
 
     const percentage = totalDue > 0 ? Math.round((taken / totalDue) * 100) : 100;
 
     return {
-      date: todayDateStr,
+      date: toLocalDateStr(date),
       totalDue,
       taken,
       skipped,
       snoozed,
+      missed,
       percentage,
     };
+  },
+
+  getTodayAdherence: () => get().getAdherenceForDate(new Date()),
+
+  getDoseHistory: (days = 35) => {
+    const out: DailyAdherenceSummary[] = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      out.push(get().getAdherenceForDate(d));
+    }
+    return out;
+  },
+
+  getLowSupplyMedicines: () => {
+    return get().medicines.filter(
+      (m) =>
+        m.inventoryCount != null &&
+        m.inventoryCount <= (m.refillThreshold ?? DEFAULT_REFILL_THRESHOLD)
+    );
   },
 
   getStreakDays: () => {

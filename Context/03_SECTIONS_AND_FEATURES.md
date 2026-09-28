@@ -28,6 +28,26 @@ The Dashboard is the daily hub that gives users an immediate view of today's med
    - Mini card showing active Care Circles (e.g., *"Family Circle"* or *"Mom's Care"*).
    - Member avatars with status badges (e.g., *"All meds taken"*, *"1 dose pending"*).
    - Fast action to open QR scanner or share invite.
+5. **Refill Alert Banner**:
+   - High-priority banner appears when any medicine reaches its low-supply threshold.
+   - Shows affected medicines with remaining counts; one-tap pharmacy call when a pharmacy phone is saved.
+6. **History Entry Point**:
+   - Adherence card surfaces missed-dose count and links to the full History & Adherence calendar.
+
+---
+
+## 1b. 📅 History & Adherence Calendar (Stack Screen — `/history`)
+
+A dedicated audit view for compliance over time (opened from the Dashboard adherence card).
+
+### Features & UI Elements
+1. **Monthly Calendar Grid**:
+   - Prev/next month navigation (bounded to the last 120 days of history).
+   - Color-coded day dots: **Green** = all taken, **Amber** = partial/snoozed, **Red** = any missed dose, no dot = nothing scheduled.
+   - Today is highlighted; future days are disabled.
+2. **Monthly Summary Strip**: adherence percentage, doses taken/due, and missed count for the displayed month.
+3. **Day Detail List**: tapping a day shows every scheduled dose with exact time, medicine name, status chip, and the recorded action time ("Taken at 8:32 AM" / "No dose recorded").
+4. **Missed-Dose Semantics**: an unlogged dose automatically becomes **Missed** 60 minutes after its scheduled time (`MISSED_DOSE_GRACE_MINUTES`), keeping the calendar and adherence math honest without manual input.
 
 ---
 
@@ -38,6 +58,7 @@ The Medicine Section handles the full lifecycle of medicine cataloging, scheduli
 ### A. Medicine List View
 - Search and filter by form (Pill, Syrup, Inhaler), time of day, or member.
 - Detailed card view showing current active prescriptions, remaining quantity, and upcoming alarm.
+- Stock badge per card: remaining count, turning red with "Refill soon" once at/below threshold.
 
 ### B. Add / Edit Medicine Flow (Modal or Multi-step Form)
 The user provides comprehensive information to ensure accurate medication delivery:
@@ -53,6 +74,7 @@ The user provides comprehensive information to ensure accurate medication delive
 | **Schedule for Alarm** | Time Picker & Days Selector | - Select one or multiple times per day (e.g., 08:00 AM & 08:00 PM).<br>- Frequency: *Every day*, *Specific days of week*, *Every X hours*. |
 | **Reminder Settings** | Nested Settings Panel | - **Sound**: On/Off toggle + Sound selection (*Default Chime*, *Gentle Bell*, *Radar*, *Medical Pulse*).<br>- **Vibration**: On/Off toggle + Pattern selection (*Gentle*, *Crisp*, *Heavy Alert*).<br>- **Snooze Time**: Duration selector (*5 mins*, *10 mins*, *15 mins*, *30 mins*). |
 | **Target Recipient** | Member Selector | *Myself* or any member from *Care Circle* |
+| **Supply & Refill Tracker** | Optional Numeric Fields + Phone | - **Doses left in supply** (optional).<br>- **Alert at or below** threshold (default 3).<br>- **Pharmacy phone** for one-tap `tel:` refill calls. |
 
 ---
 
@@ -96,3 +118,9 @@ Manages personal account details, system preferences, and app health settings.
    - Local database export (JSON summary of medication history).
    - Clear all local cache / Reset app data.
    - App version, terms, and privacy notice.
+5. **Appearance (Dark Mode)**:
+   - System / Light / Dark selector persisted locally (`ThemeProvider`).
+   - Full dual-palette support across every screen (tokens in `src/constants/colors.ts`).
+6. **Doctor Report**:
+   - One-tap generation of a 30-day adherence PDF (`expo-print` + `expo-sharing`).
+   - Includes adherence stats, medication schedules, recent dose activity, allergies, and emergency contact.

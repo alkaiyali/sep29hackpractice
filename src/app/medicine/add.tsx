@@ -14,8 +14,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useMedicineStore } from '../../store/medicineStore';
+import { DEFAULT_REFILL_THRESHOLD } from '../../store/medicineStore';
 import { useCareCircleStore } from '../../store/careCircleStore';
-import { Colors } from '../../constants/colors';
+import { ThemeColors } from '../../constants/colors';
+import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 import {
   DosageUnit,
   MedicineForm,
@@ -51,6 +53,8 @@ const INSTRUCTIONS: { key: MedicineInstruction; label: string }[] = [
 const PRESET_TIMES = ['08:00', '12:00', '18:00', '21:00'];
 
 export default function AddMedicineScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
@@ -69,6 +73,11 @@ export default function AddMedicineScreen() {
   const [customTimeInput, setCustomTimeInput] = useState('');
   const [forMemberId, setForMemberId] = useState<string>('user_self');
   const [saving, setSaving] = useState(false);
+
+  // Supply / refill tracking (optional)
+  const [inventoryCount, setInventoryCount] = useState('');
+  const [refillThreshold, setRefillThreshold] = useState(String(DEFAULT_REFILL_THRESHOLD));
+  const [pharmacyPhone, setPharmacyPhone] = useState('');
 
   // Reminder / Alarm Settings
   const [reminderSettings, setReminderSettings] = useState<ReminderSettings>({
@@ -118,6 +127,11 @@ export default function AddMedicineScreen() {
 
     try {
       setSaving(true);
+
+      const parsedCount = parseInt(inventoryCount.trim(), 10);
+      const parsedThreshold = parseInt(refillThreshold.trim(), 10);
+      const hasInventory = !isNaN(parsedCount) && parsedCount > 0;
+
       await addMedicine({
         name: name.trim(),
         dosage: numDosage,
@@ -130,6 +144,13 @@ export default function AddMedicineScreen() {
         daysOfWeek: [0, 1, 2, 3, 4, 5, 6], // Daily
         reminderSettings,
         forMemberId,
+        inventoryCount: hasInventory ? parsedCount : undefined,
+        refillThreshold: hasInventory
+          ? isNaN(parsedThreshold) || parsedThreshold < 0
+            ? DEFAULT_REFILL_THRESHOLD
+            : parsedThreshold
+          : undefined,
+        pharmacyPhone: pharmacyPhone.trim() || undefined,
       });
 
       router.back();
@@ -149,7 +170,7 @@ export default function AddMedicineScreen() {
       {/* Modal Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn} hitSlop={10}>
-          <Ionicons name="close" size={24} color={Colors.light.textPrimary} />
+          <Ionicons name="close" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Add New Medicine</Text>
         <TouchableOpacity onPress={handleSave} disabled={saving} style={styles.saveHeaderBtn}>
@@ -169,7 +190,7 @@ export default function AddMedicineScreen() {
               <Ionicons
                 name="person"
                 size={14}
-                color={forMemberId === 'user_self' ? '#FFFFFF' : Colors.light.primary}
+                color={forMemberId === 'user_self' ? '#FFFFFF' : colors.primary}
               />
               <Text
                 style={[
@@ -213,7 +234,7 @@ export default function AddMedicineScreen() {
           <TextInput
             style={styles.textInput}
             placeholder="e.g. Amoxicillin, Lipitor, Vitamin C"
-            placeholderTextColor={Colors.light.textMuted}
+            placeholderTextColor={colors.textMuted}
             value={name}
             onChangeText={setName}
           />
@@ -226,7 +247,7 @@ export default function AddMedicineScreen() {
             <TextInput
               style={[styles.textInput, styles.dosageInput]}
               placeholder="e.g. 500"
-              placeholderTextColor={Colors.light.textMuted}
+              placeholderTextColor={colors.textMuted}
               keyboardType="numeric"
               value={dosage}
               onChangeText={setDosage}
@@ -297,12 +318,53 @@ export default function AddMedicineScreen() {
           <TextInput
             style={[styles.textInput, styles.multilineInput]}
             placeholder="e.g. Take with a full glass of water. Avoid milk or dairy products within 2 hours."
-            placeholderTextColor={Colors.light.textMuted}
+            placeholderTextColor={colors.textMuted}
             multiline
             numberOfLines={3}
             value={notes}
             onChangeText={setNotes}
           />
+        </View>
+
+        {/* 5b. Supply & Refill Tracker */}
+        <View style={styles.formGroup}>
+          <Text style={styles.groupLabel}>Supply & Refill Tracker (optional)</Text>
+          <View style={styles.supplyRow}>
+            <View style={styles.supplyField}>
+              <Text style={styles.fieldHint}>Doses left in supply</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="e.g. 30"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="numeric"
+                value={inventoryCount}
+                onChangeText={setInventoryCount}
+              />
+            </View>
+            <View style={styles.supplyField}>
+              <Text style={styles.fieldHint}>Alert at or below</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="3"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="numeric"
+                value={refillThreshold}
+                onChangeText={setRefillThreshold}
+              />
+            </View>
+          </View>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Pharmacy phone (enables one-tap refill call)"
+            placeholderTextColor={colors.textMuted}
+            keyboardType="phone-pad"
+            value={pharmacyPhone}
+            onChangeText={setPharmacyPhone}
+          />
+          <Text style={styles.fieldHint}>
+            Every dose you mark as taken decrements the count, and Meddy alerts you when it is time
+            to request a refill.
+          </Text>
         </View>
 
         {/* 6. Add Photo (Camera or Gallery) */}
@@ -327,7 +389,7 @@ export default function AddMedicineScreen() {
                     <Ionicons
                       name="time-outline"
                       size={14}
-                      color={isSelected ? '#FFFFFF' : Colors.light.primary}
+                      color={isSelected ? '#FFFFFF' : colors.primary}
                     />
                     <Text
                       style={[
@@ -347,7 +409,7 @@ export default function AddMedicineScreen() {
               <TextInput
                 style={[styles.textInput, styles.customTimeInput]}
                 placeholder="Custom time (e.g. 14:30)"
-                placeholderTextColor={Colors.light.textMuted}
+                placeholderTextColor={colors.textMuted}
                 value={customTimeInput}
                 onChangeText={setCustomTimeInput}
               />
@@ -367,7 +429,7 @@ export default function AddMedicineScreen() {
                     onPress={() => setSelectedTimes(selectedTimes.filter((item) => item !== t))}
                     hitSlop={6}
                   >
-                    <Ionicons name="close-circle" size={14} color={Colors.light.primaryDark} />
+                    <Ionicons name="close-circle" size={14} color={colors.primaryDark} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -396,10 +458,11 @@ export default function AddMedicineScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -408,7 +471,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.surfaceBorder,
+    borderBottomColor: colors.surfaceBorder,
     backgroundColor: '#FFFFFF',
   },
   closeBtn: {
@@ -417,18 +480,18 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   saveHeaderBtn: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: Colors.light.primarySoft,
+    backgroundColor: colors.primarySoft,
   },
   saveHeaderText: {
     fontSize: 14,
     fontWeight: '700',
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
   },
   scrollContent: {
     padding: 20,
@@ -441,21 +504,34 @@ const styles = StyleSheet.create({
   groupLabel: {
     fontSize: 14,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   textInput: {
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 15,
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   multilineInput: {
     minHeight: 80,
     textAlignVertical: 'top',
+  },
+  supplyRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  supplyField: {
+    flex: 1,
+    gap: 4,
+  },
+  fieldHint: {
+    fontSize: 11,
+    color: colors.textMuted,
+    fontWeight: '500',
   },
   memberPickerRow: {
     flexDirection: 'row',
@@ -469,18 +545,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   memberChipSelected: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   memberChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
   },
   memberChipTextSelected: {
     color: '#FFFFFF',
@@ -499,21 +575,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 10,
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   unitChipSelected: {
-    backgroundColor: Colors.light.primarySoft,
-    borderColor: Colors.light.primary,
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primary,
   },
   unitChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
   },
   unitChipTextSelected: {
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
     fontWeight: '700',
   },
   instructionGrid: {
@@ -525,18 +601,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10,
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   instructionChipSelected: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   instructionChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
   },
   instructionChipTextSelected: {
     color: '#FFFFFF',
@@ -556,18 +632,18 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: 10,
     borderRadius: 12,
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   timeChipSelected: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   timeChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
   },
   timeChipTextSelected: {
     color: '#FFFFFF',
@@ -582,7 +658,7 @@ const styles = StyleSheet.create({
   addTimeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: 16,
     borderRadius: 14,
     gap: 4,
@@ -602,13 +678,13 @@ const styles = StyleSheet.create({
   activeTimesLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
   },
   activeTimeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: Colors.light.primaryLight,
+    backgroundColor: colors.primaryLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -616,7 +692,7 @@ const styles = StyleSheet.create({
   activeTimeBadgeText: {
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
   },
   submitContainer: {
     marginTop: 10,

@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MedicineForm } from '../../types/medicine';
-import { Colors } from '../../constants/colors';
+import { ThemeColors } from '../../constants/colors';
+import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 
 interface MedicineFormPickerProps {
   selectedForm: MedicineForm;
@@ -29,6 +30,8 @@ export const MedicineFormPicker: React.FC<MedicineFormPickerProps> = ({
   selectedForm,
   onSelectForm,
 }) => {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <ScrollView
       horizontal
@@ -48,7 +51,7 @@ export const MedicineFormPicker: React.FC<MedicineFormPickerProps> = ({
               <Ionicons
                 name={item.icon}
                 size={22}
-                color={isSelected ? '#FFFFFF' : Colors.light.primary}
+                color={isSelected ? '#FFFFFF' : colors.primary}
               />
             </View>
             <Text style={[styles.itemLabel, isSelected && styles.selectedItemLabel]}>
@@ -61,7 +64,8 @@ export const MedicineFormPicker: React.FC<MedicineFormPickerProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: {
     paddingVertical: 6,
     gap: 10,
@@ -72,14 +76,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 14,
-    backgroundColor: Colors.light.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     borderWidth: 1.5,
     borderColor: 'transparent',
     minWidth: 95,
   },
   selectedItemCard: {
-    backgroundColor: Colors.light.primarySoft,
-    borderColor: Colors.light.primary,
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primary,
   },
   iconCircle: {
     width: 40,
@@ -91,16 +95,16 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   selectedIconCircle: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: colors.primary,
   },
   itemLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   selectedItemLabel: {
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
     fontWeight: '700',
   },
 });

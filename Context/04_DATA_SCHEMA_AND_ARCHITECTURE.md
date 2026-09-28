@@ -47,6 +47,9 @@ export interface Medicine {
   daysOfWeek: number[]; // 0 (Sun) - 6 (Sat)
   reminderSettings: ReminderSettings;
   forMemberId: string; // "self" or specific CareCircleMember.id
+  inventoryCount?: number; // Remaining doses left in supply
+  refillThreshold?: number; // Low-supply alert triggers at or below this count
+  pharmacyPhone?: string; // Optional; enables one-tap refill call
   notificationIds?: string[]; // IDs registered with expo-notifications
   createdAt: string; // ISO string
   updatedAt: string; // ISO string
@@ -81,14 +84,27 @@ export interface CareCircle {
 ```typescript
 export type DoseStatus = 'taken' | 'skipped' | 'snoozed';
 
+/** UI-facing status: logged statuses plus computed 'pending' | 'missed'. */
+export type DoseDisplayStatus = DoseStatus | 'pending' | 'missed';
+
 export interface MedicationLog {
   id: string;
   medicineId: string;
   memberId: string;
-  scheduledTime: string; // ISO date string for scheduled dose
+  scheduledTime: string; // Local timestamp "YYYY-MM-DDTHH:mm:00"
   actionTime: string; // ISO date string when button was pressed
   status: DoseStatus;
   notes?: string;
+}
+
+export interface DailyAdherenceSummary {
+  date: string; // YYYY-MM-DD (local)
+  totalDue: number;
+  taken: number;
+  skipped: number;
+  snoozed: number;
+  missed: number;
+  percentage: number;
 }
 
 export interface UserProfile {
@@ -100,6 +116,20 @@ export interface UserProfile {
   defaultReminderSettings: ReminderSettings;
 }
 ```
+
+### D. Derived Adherence & Inventory APIs (`useMedicineStore`)
+
+Derived values are computed in the store (never persisted redundantly):
+
+- `MISSED_DOSE_GRACE_MINUTES = 60` — an unlogged dose becomes `missed` this long after its scheduled time.
+- `DEFAULT_REFILL_THRESHOLD = 3` — fallback alert threshold when inventory tracking is on.
+- `toLocalDateStr(date)` — timezone-safe `YYYY-MM-DD` helper used for all lookups.
+- `getDosesForDate(date)` / `getTodayDoses()` — scheduled doses for a day with computed status (`pending` / `missed` / logged status), excluding days before a medicine was created.
+- `getAdherenceForDate(date)` / `getTodayAdherence()` — taken/skipped/snoozed/missed counts + percentage.
+- `getDoseHistory(days = 35)` — chronological `DailyAdherenceSummary[]` powering the History calendar.
+- `getLowSupplyMedicines()` — medicines at or below their refill threshold.
+- `logDose(...)` — writes the log **and** adjusts `inventoryCount` exactly once per taken/un-taken transition, firing `notificationService.notifyLowSupply` when crossing the threshold.
+- Theme preference (`system` / `light` / `dark`) is persisted under `StorageKeys.THEME_PREF` by `src/theme/ThemeProvider.tsx`.
 
 ---
 
@@ -130,6 +160,7 @@ sep29hackpractice/
 │   │   │   ├── create.tsx           # Create Circle & View QR Code Modal
 │   │   │   ├── scan.tsx             # QR Camera Scanner Screen
 │   │   │   └── add-member-med.tsx   # Add Medicine for Care Circle Member
+│   │   ├── history.tsx              # Adherence Calendar & History Audit (stack screen)
 │   │   └── +not-found.tsx
 │   ├── components/
 │   │   ├── common/                  # Buttons, Headers, Inputs, EmptyStates
@@ -142,8 +173,11 @@ sep29hackpractice/
 │   ├── services/
 │   │   ├── notifications.ts         # Expo Notifications scheduler & snooze logic
 │   │   ├── audioHaptics.ts          # Expo AV sound triggers & Expo Haptics patterns
+│   │   ├── report.ts                # Clinical PDF doctor-report builder & share
 │   │   ├── camera.ts                # ImagePicker launcher & storage manager
 │   │   └── storage.ts               # AsyncStorage engine
+│   ├── theme/
+│   │   └── ThemeProvider.tsx        # system/light/dark provider + useThemedStyles hook
 │   ├── store/
 │   │   ├── medicineStore.ts         # Zustand store for medicines and logs
 │   │   ├── careCircleStore.ts       # Zustand store for circles and members

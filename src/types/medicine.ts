@@ -51,6 +51,9 @@ export interface Medicine {
   daysOfWeek: number[]; // 0=Sun, 1=Mon, ..., 6=Sat
   reminderSettings: ReminderSettings;
   forMemberId: string; // "self" or CareCircleMember.id
+  inventoryCount?: number; // remaining units left in supply
+  refillThreshold?: number; // low-supply alert triggers at or below this count
+  pharmacyPhone?: string; // optional, enables one-tap refill call
   notificationIds?: string[];
   createdAt: string;
   updatedAt: string;

@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CareCircle } from '../../types/careCircle';
-import { Colors } from '../../constants/colors';
+import { ThemeColors } from '../../constants/colors';
+import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 
 interface CareCircleSummaryProps {
   circle?: CareCircle;
@@ -15,6 +16,8 @@ export const CareCircleSummary: React.FC<CareCircleSummaryProps> = ({
   onPressCircle,
   onPressQR,
 }) => {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   if (!circle) {
     return (
       <View style={styles.emptyContainer}>
@@ -35,7 +38,7 @@ export const CareCircleSummary: React.FC<CareCircleSummaryProps> = ({
       <View style={styles.headerRow}>
         <View style={styles.titleRow}>
           <View style={styles.circleIconBg}>
-            <Ionicons name="people" size={18} color={Colors.light.primaryDark} />
+            <Ionicons name="people" size={18} color={colors.primaryDark} />
           </View>
           <View>
             <Text style={styles.circleName}>{circle.name}</Text>
@@ -44,7 +47,7 @@ export const CareCircleSummary: React.FC<CareCircleSummaryProps> = ({
         </View>
 
         <TouchableOpacity style={styles.qrIconBtn} onPress={onPressQR} hitSlop={8}>
-          <Ionicons name="qr-code" size={20} color={Colors.light.primary} />
+          <Ionicons name="qr-code" size={20} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -65,25 +68,26 @@ export const CareCircleSummary: React.FC<CareCircleSummaryProps> = ({
 
         <View style={styles.viewCircleAction}>
           <Text style={styles.viewCircleText}>Manage Circle</Text>
-          <Ionicons name="chevron-forward" size={16} color={Colors.light.primary} />
+          <Ionicons name="chevron-forward" size={16} color={colors.primary} />
         </View>
       </TouchableOpacity>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   container: {
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderRadius: 18,
     padding: 16,
     marginHorizontal: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   emptyContainer: {
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderRadius: 18,
     padding: 16,
     marginHorizontal: 20,
@@ -92,7 +96,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   textGroup: {
     flex: 1,
@@ -101,17 +105,17 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   emptySub: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     marginTop: 2,
   },
   joinBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10,
@@ -137,23 +141,23 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: Colors.light.primarySoft,
+    backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
   circleName: {
     fontSize: 15,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   circleCount: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
   },
   qrIconBtn: {
     padding: 8,
     borderRadius: 10,
-    backgroundColor: Colors.light.primarySoft,
+    backgroundColor: colors.primarySoft,
   },
   membersRow: {
     flexDirection: 'row',
@@ -161,7 +165,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.surfaceBorder,
+    borderTopColor: colors.surfaceBorder,
   },
   avatarStack: {
     flexDirection: 'row',
@@ -189,6 +193,6 @@ const styles = StyleSheet.create({
   viewCircleText: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.light.primary,
+    color: colors.primary,
   },
 });

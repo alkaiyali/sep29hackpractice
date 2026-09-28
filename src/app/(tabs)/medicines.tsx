@@ -11,13 +11,16 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useMedicineStore } from '../../store/medicineStore';
+import { useMedicineStore, DEFAULT_REFILL_THRESHOLD } from '../../store/medicineStore';
 import { useCareCircleStore } from '../../store/careCircleStore';
-import { Colors } from '../../constants/colors';
+import { ThemeColors } from '../../constants/colors';
+import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 import { Medicine } from '../../types/medicine';
 import { Header } from '../../components/ui/Header';
 
 export default function MedicinesScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
@@ -124,7 +127,7 @@ export default function MedicinesScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.listContent}>
         {filteredMedicines.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="medkit-outline" size={56} color={Colors.light.textMuted} />
+            <Ionicons name="medkit-outline" size={56} color={colors.textMuted} />
             <Text style={styles.emptyTitle}>No Medicines in this Category</Text>
             <Text style={styles.emptySub}>Tap "+ Add" to create a new medication schedule.</Text>
           </View>
@@ -137,7 +140,7 @@ export default function MedicinesScreen() {
                     <Image source={{ uri: med.photoUri }} style={styles.cardPhoto} />
                   ) : (
                     <View style={styles.cardIconBg}>
-                      <Ionicons name={getFormIcon(med.form)} size={24} color={Colors.light.primary} />
+                      <Ionicons name={getFormIcon(med.form)} size={24} color={colors.primary} />
                     </View>
                   )}
                   <View style={styles.titleCol}>
@@ -153,20 +156,37 @@ export default function MedicinesScreen() {
                   style={styles.deleteBtn}
                   hitSlop={8}
                 >
-                  <Ionicons name="trash-outline" size={18} color={Colors.light.danger} />
+                  <Ionicons name="trash-outline" size={18} color={colors.danger} />
                 </TouchableOpacity>
               </View>
 
               {/* Instructions and Notes */}
               <View style={styles.metaRow}>
                 <View style={styles.tag}>
-                  <Ionicons name="information-circle-outline" size={13} color={Colors.light.primaryDark} />
+                  <Ionicons name="information-circle-outline" size={13} color={colors.primaryDark} />
                   <Text style={styles.tagText}>{med.instruction.replace(/_/g, ' ')}</Text>
                 </View>
                 <View style={styles.memberTag}>
-                  <Ionicons name="person-outline" size={12} color={Colors.light.accent} />
+                  <Ionicons name="person-outline" size={12} color={colors.accent} />
                   <Text style={styles.memberTagText}>{getMemberLabel(med.forMemberId)}</Text>
                 </View>
+                {med.inventoryCount != null &&
+                  (() => {
+                    const isLow =
+                      med.inventoryCount <= (med.refillThreshold ?? DEFAULT_REFILL_THRESHOLD);
+                    return (
+                      <View style={[styles.stockTag, isLow && styles.stockTagLow]}>
+                        <Ionicons
+                          name="cube-outline"
+                          size={12}
+                          color={isLow ? colors.danger : colors.primaryDark}
+                        />
+                        <Text style={[styles.stockTagText, isLow && styles.stockTagTextLow]}>
+                          {med.inventoryCount} left{isLow ? ' · Refill soon' : ''}
+                        </Text>
+                      </View>
+                    );
+                  })()}
               </View>
 
               {med.optionalNotes ? (
@@ -178,7 +198,7 @@ export default function MedicinesScreen() {
               {/* Schedules & Alarms Info */}
               <View style={styles.alarmInfoBox}>
                 <View style={styles.alarmTimesRow}>
-                  <Ionicons name="alarm-outline" size={15} color={Colors.light.primary} />
+                  <Ionicons name="alarm-outline" size={15} color={colors.primary} />
                   <Text style={styles.alarmTimesLabel}>Alarm Times:</Text>
                   <Text style={styles.alarmTimesValues}>{med.scheduleTimes.join(', ')}</Text>
                 </View>
@@ -212,15 +232,16 @@ export default function MedicinesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background,
   },
   addHeaderBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
@@ -233,7 +254,7 @@ const styles = StyleSheet.create({
   },
   filterBar: {
     paddingVertical: 10,
-    backgroundColor: Colors.light.background,
+    backgroundColor: colors.background,
   },
   filterScroll: {
     paddingHorizontal: 20,
@@ -243,18 +264,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 20,
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   filterChipActive: {
-    backgroundColor: Colors.light.primary,
-    borderColor: Colors.light.primary,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   filterChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
   },
   filterChipTextActive: {
     color: '#FFFFFF',
@@ -265,12 +286,12 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   medicineCard: {
-    backgroundColor: Colors.light.surface,
+    backgroundColor: colors.surface,
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: Colors.light.surfaceBorder,
-    shadowColor: Colors.light.textPrimary,
+    borderColor: colors.surfaceBorder,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -292,7 +313,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 14,
-    backgroundColor: Colors.light.primarySoft,
+    backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -300,7 +321,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 14,
-    backgroundColor: Colors.light.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
   },
   titleCol: {
     flex: 1,
@@ -308,18 +329,18 @@ const styles = StyleSheet.create({
   medicineName: {
     fontSize: 17,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   medicineSub: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     marginTop: 2,
     textTransform: 'capitalize',
   },
   deleteBtn: {
     padding: 8,
     borderRadius: 10,
-    backgroundColor: Colors.light.dangerLight,
+    backgroundColor: colors.dangerLight,
   },
   metaRow: {
     flexDirection: 'row',
@@ -330,7 +351,7 @@ const styles = StyleSheet.create({
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.primarySoft,
+    backgroundColor: colors.primarySoft,
     paddingHorizontal: 9,
     paddingVertical: 4,
     borderRadius: 8,
@@ -339,13 +360,13 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
     textTransform: 'capitalize',
   },
   memberTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.accentLight,
+    backgroundColor: colors.accentLight,
     paddingHorizontal: 9,
     paddingVertical: 4,
     borderRadius: 8,
@@ -354,18 +375,38 @@ const styles = StyleSheet.create({
   memberTagText: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.light.accent,
+    color: colors.accent,
+  },
+  stockTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primarySoft,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+  },
+  stockTagLow: {
+    backgroundColor: colors.dangerLight,
+  },
+  stockTagText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.primaryDark,
+  },
+  stockTagTextLow: {
+    color: colors.danger,
   },
   notesText: {
     fontSize: 12,
-    color: Colors.light.textSecondary,
-    backgroundColor: Colors.light.surfaceSubtle,
+    color: colors.textSecondary,
+    backgroundColor: colors.surfaceSubtle,
     padding: 8,
     borderRadius: 8,
     marginBottom: 10,
   },
   alarmInfoBox: {
-    backgroundColor: Colors.light.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     borderRadius: 12,
     padding: 10,
     gap: 6,
@@ -378,12 +419,12 @@ const styles = StyleSheet.create({
   alarmTimesLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   alarmTimesValues: {
     fontSize: 13,
     fontWeight: '700',
-    color: Colors.light.primaryDark,
+    color: colors.primaryDark,
   },
   alarmDetailsRow: {
     flexDirection: 'row',
@@ -391,11 +432,11 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingTop: 4,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.surfaceBorder,
+    borderTopColor: colors.surfaceBorder,
   },
   alarmDetailItem: {
     fontSize: 11,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   emptyState: {
@@ -407,11 +448,11 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: Colors.light.textPrimary,
+    color: colors.textPrimary,
   },
   emptySub: {
     fontSize: 13,
-    color: Colors.light.textSecondary,
+    color: colors.textSecondary,
   },
   fab: {
     position: 'absolute',
@@ -419,10 +460,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: Colors.light.primary,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.light.primaryDark,
+    shadowColor: colors.primaryDark,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 10,
