@@ -63,6 +63,7 @@ interface MedicineState {
   getTodayAdherence: () => DailyAdherenceSummary;
   getDoseHistory: (days?: number) => DailyAdherenceSummary[];
   getLowSupplyMedicines: () => Medicine[];
+  adjustInventory: (id: string, delta: number) => Promise<void>;
   checkMissedEscalations: () => Promise<void>;
   getStreakDays: () => number;
 }
@@ -326,6 +327,26 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
         m.inventoryCount != null &&
         m.inventoryCount <= (m.refillThreshold ?? DEFAULT_REFILL_THRESHOLD)
     );
+  },
+
+  adjustInventory: async (id, delta) => {
+    const target = get().medicines.find((m) => m.id === id);
+    if (!target || target.inventoryCount == null) return;
+    const prevCount = target.inventoryCount;
+    const newCount = Math.max(0, prevCount + delta);
+    if (newCount === prevCount) return;
+
+    const threshold = target.refillThreshold ?? DEFAULT_REFILL_THRESHOLD;
+    const updated = get().medicines.map((m) =>
+      m.id === id ? { ...m, inventoryCount: newCount, updatedAt: new Date().toISOString() } : m
+    );
+    set({ medicines: updated });
+    await safeStorage.setItem(StorageKeys.MEDICINES, updated);
+
+    if (delta < 0 && newCount <= threshold && prevCount > threshold) {
+      await notificationService.notifyLowSupply({ ...target, inventoryCount: newCount }, newCount);
+    }
+    await audioHapticsService.triggerSuccessFeedback();
   },
 
   checkMissedEscalations: async () => {

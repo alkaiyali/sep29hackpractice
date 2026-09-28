@@ -54,6 +54,16 @@ const INSTRUCTIONS: { key: MedicineInstruction; label: string }[] = [
 
 const PRESET_TIMES = ['08:00', '12:00', '18:00', '21:00'];
 
+const WEEKDAYS = [
+  { key: 0, label: 'S' },
+  { key: 1, label: 'M' },
+  { key: 2, label: 'T' },
+  { key: 3, label: 'W' },
+  { key: 4, label: 'T' },
+  { key: 5, label: 'F' },
+  { key: 6, label: 'S' },
+];
+
 export default function AddMedicineScreen() {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -90,6 +100,7 @@ export default function AddMedicineScreen() {
   const [photoUri, setPhotoUri] = useState<string | undefined>(scanned.scannedPhoto || undefined);
   const [selectedTimes, setSelectedTimes] = useState<string[]>(['08:00']);
   const [customTimeInput, setCustomTimeInput] = useState('');
+  const [daysOfWeek, setDaysOfWeek] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
   const [forMemberId, setForMemberId] = useState<string>('user_self');
   const [saving, setSaving] = useState(false);
 
@@ -118,6 +129,18 @@ export default function AddMedicineScreen() {
       }
     } else {
       setSelectedTimes([...selectedTimes, time].sort());
+    }
+  };
+
+  const toggleWeekday = (day: number) => {
+    if (daysOfWeek.includes(day)) {
+      if (daysOfWeek.length > 1) {
+        setDaysOfWeek(daysOfWeek.filter((d) => d !== day));
+      } else {
+        Alert.alert('Schedule Required', 'Please keep at least one day selected.');
+      }
+    } else {
+      setDaysOfWeek([...daysOfWeek, day].sort());
     }
   };
 
@@ -191,7 +214,7 @@ export default function AddMedicineScreen() {
         optionalNotes: notes.trim() || undefined,
         photoUri,
         scheduleTimes: selectedTimes,
-        daysOfWeek: [0, 1, 2, 3, 4, 5, 6], // Daily
+        daysOfWeek,
         reminderSettings,
         forMemberId,
         inventoryCount: hasInventory ? parsedCount : undefined,
@@ -449,6 +472,24 @@ export default function AddMedicineScreen() {
 
         {/* 7. Schedule for Alarm */}
         <View style={styles.formGroup}>
+          <Text style={styles.groupLabel}>Repeat Days</Text>
+          <View style={styles.weekRow}>
+            {WEEKDAYS.map((day) => {
+              const isSelected = daysOfWeek.includes(day.key);
+              return (
+                <TouchableOpacity
+                  key={`${day.key}-${day.label}`}
+                  style={[styles.weekChip, isSelected && styles.weekChipSelected]}
+                  onPress={() => toggleWeekday(day.key)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.weekChipText, isSelected && styles.weekChipTextSelected]}>
+                    {day.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
           <Text style={styles.groupLabel}>Schedule for Alarm (Daily Times)</Text>
           <View style={styles.timesContainer}>
             <View style={styles.presetTimesRow}>
@@ -740,6 +781,32 @@ const createStyles = (colors: ThemeColors) =>
   },
   timesContainer: {
     gap: 10,
+  },
+  weekRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  weekChip: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
+  weekChipSelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  weekChipText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  weekChipTextSelected: {
+    color: colors.onPrimary,
   },
   presetTimesRow: {
     flexDirection: 'row',

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -24,10 +25,11 @@ export default function MedicinesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
-  const { medicines, deleteMedicine } = useMedicineStore();
+  const { medicines, deleteMedicine, adjustInventory } = useMedicineStore();
   const activeCircle = useCareCircleStore((s) => s.getActiveCircle());
 
   const [filterMemberId, setFilterMemberId] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const getFormIcon = (form: string): keyof typeof Ionicons.glyphMap => {
     switch (form) {
@@ -51,8 +53,10 @@ export default function MedicinesScreen() {
   };
 
   const filteredMedicines = medicines.filter((m) => {
-    if (filterMemberId === 'all') return true;
-    return m.forMemberId === filterMemberId;
+    if (filterMemberId !== 'all' && m.forMemberId !== filterMemberId) return false;
+    const q = searchQuery.trim().toLowerCase();
+    if (q && !m.name.toLowerCase().includes(q)) return false;
+    return true;
   });
 
   const handleDelete = (med: Medicine) => {
@@ -87,7 +91,23 @@ export default function MedicinesScreen() {
         }
       />
 
-      {/* Member Filter Chips */}
+      {/* Search + Member Filter Chips */}
+      <View style={styles.searchRow}>
+        <Ionicons name="search-outline" size={18} color={colors.textMuted} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search medicines…"
+          placeholderTextColor={colors.textMuted}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          returnKeyType="search"
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={8}>
+            <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+          </TouchableOpacity>
+        )}
+      </View>
       <View style={styles.filterBar}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
           <TouchableOpacity
@@ -214,6 +234,30 @@ export default function MedicinesScreen() {
                     ⏰ Snooze: {med.reminderSettings.snoozeMinutes}m
                   </Text>
                 </View>
+
+                {med.inventoryCount != null && (
+                  <View style={styles.stockRow}>
+                    <Ionicons name="cube-outline" size={15} color={colors.primary} />
+                    <Text style={styles.stockLabel}>Supply</Text>
+                    <TouchableOpacity
+                      style={styles.stepBtn}
+                      onPress={() => adjustInventory(med.id, -1)}
+                      hitSlop={8}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="remove" size={14} color={colors.primaryDark} />
+                    </TouchableOpacity>
+                    <Text style={styles.stockCount}>{med.inventoryCount}</Text>
+                    <TouchableOpacity
+                      style={styles.stepBtn}
+                      onPress={() => adjustInventory(med.id, 1)}
+                      hitSlop={8}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="add" size={14} color={colors.primaryDark} />
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
             </View>
           ))
@@ -255,6 +299,25 @@ const createStyles = (colors: ThemeColors) =>
   filterBar: {
     paddingVertical: 10,
     backgroundColor: colors.background,
+  },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginHorizontal: 20,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: colors.textPrimary,
+    padding: 0,
   },
   filterScroll: {
     paddingHorizontal: 20,
@@ -438,6 +501,36 @@ const createStyles = (colors: ThemeColors) =>
     fontSize: 11,
     color: colors.textSecondary,
     fontWeight: '500',
+  },
+  stockRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.surfaceBorder,
+  },
+  stockLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  stepBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  stockCount: {
+    minWidth: 30,
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: '800',
+    color: colors.textPrimary,
   },
   emptyState: {
     alignItems: 'center',

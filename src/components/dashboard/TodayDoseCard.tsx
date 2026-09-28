@@ -55,6 +55,20 @@ export const TodayDoseCard: React.FC<TodayDoseCardProps> = ({
     return `${displayH}:${mStr} ${ampm}`;
   };
 
+  const formatRelative = (time: string) => {
+    const [hStr, mStr] = time.split(':');
+    const now = new Date();
+    const target = new Date();
+    target.setHours(parseInt(hStr, 10), parseInt(mStr, 10), 0, 0);
+    const diffMins = Math.round((target.getTime() - now.getTime()) / 60000);
+    if (Math.abs(diffMins) < 5) return 'now';
+    if (diffMins > 0) {
+      return diffMins < 60 ? `in ${diffMins}m` : `in ${Math.floor(diffMins / 60)}h ${diffMins % 60 === 0 ? '' : `${diffMins % 60}m`}`.trim();
+    }
+    const ago = Math.abs(diffMins);
+    return ago < 60 ? `${ago}m ago` : `${Math.floor(ago / 60)}h ago`;
+  };
+
   const getStatusBadge = () => {
     switch (status) {
       case 'taken':
@@ -97,7 +111,9 @@ export const TodayDoseCard: React.FC<TodayDoseCardProps> = ({
       <View style={styles.headerRow}>
         <View style={styles.timeBadgeContainer}>
           <Ionicons name="time-outline" size={14} color={colors.primaryDark} />
-          <Text style={styles.timeText}>{formatDisplayTime(timeStr)}</Text>
+          <Text style={styles.timeText}>
+            {formatDisplayTime(timeStr)} · {formatRelative(timeStr)}
+          </Text>
         </View>
 
         <View style={styles.statusAndMember}>
