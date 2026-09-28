@@ -27,6 +27,7 @@ function RootNavigator() {
 
   const loadMedicines = useMedicineStore((s) => s.loadData);
   const loadCircles = useCareCircleStore((s) => s.loadData);
+  const initCircleSync = useCareCircleStore((s) => s.initSync);
   const loadUser = useUserStore((s) => s.loadData);
   const loadActivity = useActivityStore((s) => s.loadData);
   const loadVitals = useVitalsStore((s) => s.loadData);
@@ -38,10 +39,12 @@ function RootNavigator() {
       await Promise.all([loadMedicines(), loadCircles(), loadUser(), loadActivity(), loadVitals(), loadSounds()]);
       await notificationService.requestPermissions();
       await notificationService.registerNotificationCategories();
+      // Link Care Circles to Firestore when credentials are configured
+      await initCircleSync();
     };
 
     initApp();
-  }, [loadMedicines, loadCircles, loadUser, loadActivity, loadVitals, loadSounds]);
+  }, [loadMedicines, loadCircles, initCircleSync, loadUser, loadActivity, loadVitals, loadSounds]);
 
   // Handle notification action buttons (Take / Snooze from the shade)
   useEffect(() => {

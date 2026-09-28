@@ -19,7 +19,7 @@ To take Meddy from an agile MVP to a market-leading, clinically reliable health 
 
 ## 🗺️ Phased Roadmap (Iterative Milestones)
 
-> **Status update (2026-09-28):** ✅ 1.1 Refill Tracker · ✅ 1.2 History Calendar · ✅ 1.3 Bundled chimes · ✅ 1.4 Dark Mode · ✅ 2.2 Local escalation tiers · ✅ 2.3 Local activity feed + cheers · ✅ 3.1 OCR label scanner · ✅ 3.2 Interaction gate · ✅ 3.3 Precautions · ✅ 4.1 Doctor PDF Report · ✅ 4.2 Vitals · ⏳ 2.1 Cloud backend (needs project + credentials — deliberately last).
+> **Status update (2026-09-28):** ✅ 1.1 Refill Tracker · ✅ 1.2 History Calendar · ✅ 1.3 Bundled chimes · ✅ 1.4 Dark Mode · ✅ 2.1 Care Circle cloud sync (Firestore roster + dose events + cheers — see `Context/07_FIREBASE_BACKEND_SETUP.md`) · ✅ 2.2 Local escalation tiers · ✅ 2.3 Local activity feed + cheers · ✅ 3.1 OCR label scanner · ✅ 3.2 Interaction gate · ✅ 3.3 Precautions · ✅ 4.1 Doctor PDF Report · ✅ 4.2 Vitals · ⏳ 2.2 Tier-3 push escalation (needs Cloud Functions + a development build).
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -75,11 +75,12 @@ To take Meddy from an agile MVP to a market-leading, clinically reliable health 
 
 *Focus: Transition Care Circle from local QR sharing to collaborative family caregiving with proactive emergency escalation.*
 
-### 2.1 Cloud Backend Synchronization (Supabase / Firebase)
-- **Problem**: QR codes currently establish peer metadata offline, but cross-device status sync requires cloud connectivity.
-- **Solution**:
-  - Integrate a lightweight backend (e.g. Supabase Auth + PostgreSQL with Row-Level Security, or Firebase Firestore).
-  - Real-time subscriptions: When Mom taps "Take" in another state, the caregiver's app instantly updates from "Pending" to "✓ Taken at 8:32 AM".
+### 2.1 Cloud Backend Synchronization (✅ Firestore — implemented)
+- **Problem**: QR codes originally established peer metadata offline; cross-device status sync required cloud connectivity.
+- **Solution (shipped)**:
+  - Firebase (Firestore + anonymous Auth) mirrors the Care Circle: roster, invite codes, dose events, and cheers.
+  - Real-time subscriptions: when Mom taps "Take" in another state, the caregiver's app updates instantly and the event shows a **LIVE** badge in the activity feed.
+  - Config-gated and local-first: without `EXPO_PUBLIC_FIREBASE_*` keys the app stays fully offline. Supabase (Postgres + RLS) was the alternative and remains a viable swap. Setup: `Context/07_FIREBASE_BACKEND_SETUP.md`.
 
 ### 2.2 Missed Dose Escalation System (Safety Net)
 - **Problem**: If an elderly parent forgets their blood pressure medicine or falls, an ignored phone notification does not help.

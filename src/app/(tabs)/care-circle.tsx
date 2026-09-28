@@ -20,7 +20,8 @@ import { useUserStore } from '../../store/userStore';
 import { ThemeColors } from '../../constants/colors';
 import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 import { Header } from '../../components/ui/Header';
-import { MemberRelation } from '../../types/careCircle';
+import { CircleDoseEvent, MemberRelation } from '../../types/careCircle';
+import { MedicationLog } from '../../types/log';
 
 export default function CareCircleScreen() {
   const { colors } = useTheme();
@@ -35,6 +36,11 @@ export default function CareCircleScreen() {
     addMemberToCircle,
     getActiveCircle,
     getGenerateQRPayload,
+    syncStatus,
+    myUid,
+    circleFeed,
+    sendRemoteCheer,
+    initSync,
   } = useCareCircleStore();
 
   const medicines = useMedicineStore((s) => s.medicines);
@@ -89,10 +95,6 @@ export default function CareCircleScreen() {
     (activeCircle?.members || []).map((m) => [m.id, m.id === 'user_self' ? 'You' : m.name])
   );
 
-  const recentActivity = [...logs]
-    .sort((a, b) => b.actionTime.localeCompare(a.actionTime))
-    .slice(0, 15);
-
   const activityMeta = (status: string): { icon: keyof typeof Ionicons.glyphMap; text: string } => {
     switch (status) {
       case 'taken':
@@ -105,6 +107,55 @@ export default function CareCircleScreen() {
         return { icon: 'ellipse-outline', text: status };
     }
   };
+
+  // Live sync indicator
+  const syncColor =
+    syncStatus === 'online'
+      ? colors.success
+      : syncStatus === 'connecting'
+        ? colors.warning
+        : syncStatus === 'error'
+          ? colors.danger
+          : colors.textMuted;
+  const syncLabel =
+    syncStatus === 'online'
+      ? 'Live sync on · updates across devices'
+      : syncStatus === 'connecting'
+        ? 'Connecting to live sync…'
+        : syncStatus === 'error'
+          ? 'Sync issue · tap to retry'
+          : 'Local only · add Firebase keys to sync across devices';
+
+  // ── Activity feed: local dose logs merged with live cloud events ──────────
+  type FeedItem =
+    | { kind: 'local'; key: string; log: MedicationLog; remote?: CircleDoseEvent }
+    | { kind: 'remote'; key: string; event: CircleDoseEvent };
+
+  const normalizeMemberId = (id: string) => (id === 'user_self' && myUid ? myUid : id);
+  const eventKey = (medicineId: string, memberId: string, dateStr: string, timeStr: string) =>
+    `${medicineId}|${memberId}|${dateStr}|${timeStr}`;
+  const itemTime = (item: FeedItem) =>
+    item.kind === 'local' ? item.log.actionTime : item.event.actionTime;
+
+  const remoteByKey = new Map(
+    circleFeed.map((e) => [eventKey(e.medicineId, e.memberId, e.dateStr, e.timeStr), e])
+  );
+
+  const localItems: FeedItem[] = logs.slice(0, 40).map((log) => {
+    const dateStr = log.scheduledTime.slice(0, 10);
+    const timeStr = log.scheduledTime.slice(11, 16);
+    const key = eventKey(log.medicineId, normalizeMemberId(log.memberId), dateStr, timeStr);
+    return { kind: 'local', key, log, remote: remoteByKey.get(key) };
+  });
+
+  const localKeys = new Set(localItems.map((i) => i.key));
+  const remoteOnlyItems: FeedItem[] = circleFeed
+    .filter((e) => !localKeys.has(eventKey(e.medicineId, e.memberId, e.dateStr, e.timeStr)))
+    .map((e) => ({ kind: 'remote', key: e.id, event: e }));
+
+  const feedItems = [...localItems, ...remoteOnlyItems]
+    .sort((a, b) => itemTime(b).localeCompare(itemTime(a)))
+    .slice(0, 15);
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -124,6 +175,19 @@ export default function CareCircleScreen() {
       />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Live sync status */}
+        <TouchableOpacity
+          style={styles.syncPill}
+          activeOpacity={syncStatus === 'error' ? 0.7 : 1}
+          onPress={() => {
+            if (syncStatus === 'error') void initSync();
+          }}
+        >
+          <View style={[styles.syncDot, { backgroundColor: syncColor }]} />
+          <Text style={styles.syncText}>{syncLabel}</Text>
+          {syncStatus === 'error' && <Ionicons name="refresh" size={14} color={colors.danger} />}
+        </TouchableOpacity>
+
         {/* Active Circle Card with QR Code */}
         {activeCircle ? (
           <View style={styles.qrCard}>
@@ -235,7 +299,7 @@ export default function CareCircleScreen() {
           </View>
         </View>
 
-        {recentActivity.length === 0 ? (
+        {feedItems.length === 0 ? (
           <View style={styles.emptyActivity}>
             <Ionicons name="chatbubbles-outline" size={36} color={colors.textMuted} />
             <Text style={styles.emptyActivityText}>
@@ -244,38 +308,71 @@ export default function CareCircleScreen() {
           </View>
         ) : (
           <View style={styles.activityList}>
-            {recentActivity.map((log) => {
-              const meta = activityMeta(log.status);
-              const cheers = reactions[log.id] || {};
+            {feedItems.map((item) => {
+              const isLocal = item.kind === 'local';
+              const meta = activityMeta(isLocal ? item.log.status : item.event.status);
+              const memberLabel = isLocal
+                ? memberNameById.get(item.log.memberId) || 'Someone'
+                : item.event.memberName;
+              const medLabel = isLocal
+                ? medicineNameById.get(item.log.medicineId) || 'a medicine'
+                : item.event.medicineName;
+              const actionTime = isLocal ? item.log.actionTime : item.event.actionTime;
+              const remoteEventId = isLocal ? item.remote?.id : item.event.id;
+              const localLogId = isLocal ? item.log.id : undefined;
+              const remoteCheers = isLocal ? item.remote?.cheers : item.event.cheers;
+              const myCheer = myUid ? remoteCheers?.[myUid] : undefined;
+
+              const cheerCounts: Record<string, number> = {};
+              if (localLogId) {
+                Object.entries(reactions[localLogId] || {}).forEach(([emoji, count]) => {
+                  cheerCounts[emoji] = (cheerCounts[emoji] || 0) + count;
+                });
+              }
+              Object.values(remoteCheers || {}).forEach((emoji) => {
+                cheerCounts[emoji] = (cheerCounts[emoji] || 0) + 1;
+              });
+
+              // Mirrored events cheer through Firestore; local-only ones stay on device.
+              const handleCheer = (emoji: string) => {
+                if (remoteEventId) return sendRemoteCheer(remoteEventId, emoji);
+                if (localLogId) return sendCheer(localLogId, emoji);
+              };
+
               return (
-                <View key={log.id} style={styles.activityCard}>
+                <View key={item.key} style={styles.activityCard}>
                   <Ionicons name={meta.icon} size={20} color={colors.primary} />
                   <View style={styles.activityBody}>
                     <Text style={styles.activityText} numberOfLines={2}>
-                      <Text style={styles.activityName}>
-                        {memberNameById.get(log.memberId) || 'Someone'}
-                      </Text>{' '}
-                      {meta.text} {medicineNameById.get(log.medicineId) || 'a medicine'}
+                      <Text style={styles.activityName}>{memberLabel}</Text> {meta.text} {medLabel}
                     </Text>
-                    <Text style={styles.activityTime}>
-                      {new Date(log.actionTime).toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: 'numeric',
-                        minute: '2-digit',
-                      })}
-                    </Text>
+                    <View style={styles.activityMetaRow}>
+                      <Text style={styles.activityTime}>
+                        {new Date(actionTime).toLocaleString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
+                      </Text>
+                      {!isLocal && (
+                        <View style={styles.liveTag}>
+                          <Ionicons name="cloud-done-outline" size={11} color={colors.success} />
+                          <Text style={styles.liveTagText}>LIVE</Text>
+                        </View>
+                      )}
+                    </View>
                     <View style={styles.cheerRow}>
                       {REACTION_EMOJIS.map((emoji) => (
                         <TouchableOpacity
                           key={emoji}
-                          style={styles.cheerBtn}
-                          onPress={() => sendCheer(log.id, emoji)}
+                          style={[styles.cheerBtn, myCheer === emoji && styles.cheerBtnActive]}
+                          onPress={() => handleCheer(emoji)}
                           activeOpacity={0.7}
                         >
                           <Text style={styles.cheerEmoji}>{emoji}</Text>
-                          {(cheers[emoji] || 0) > 0 && (
-                            <Text style={styles.cheerCount}>{cheers[emoji]}</Text>
+                          {(cheerCounts[emoji] || 0) > 0 && (
+                            <Text style={styles.cheerCount}>{cheerCounts[emoji]}</Text>
                           )}
                         </TouchableOpacity>
                       ))}
@@ -468,6 +565,28 @@ const createStyles = (colors: ThemeColors) =>
     padding: 20,
     paddingBottom: 110,
     gap: 22,
+  },
+  syncPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: colors.surfaceSubtle,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
+  syncDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  syncText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
   qrCard: {
     backgroundColor: colors.surface,
@@ -677,6 +796,22 @@ const createStyles = (colors: ThemeColors) =>
     fontSize: 11,
     color: colors.textMuted,
   },
+  activityMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  liveTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  liveTagText: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    color: colors.success,
+  },
   cheerRow: {
     flexDirection: 'row',
     gap: 8,
@@ -692,6 +827,10 @@ const createStyles = (colors: ThemeColors) =>
     borderRadius: 999,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
+  },
+  cheerBtnActive: {
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primary,
   },
   cheerEmoji: {
     fontSize: 14,

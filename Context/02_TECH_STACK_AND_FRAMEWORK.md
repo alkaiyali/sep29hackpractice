@@ -63,6 +63,14 @@
 - Notification shade actions (Take/Snooze) log doses via a response listener in `_layout`; completed doses offer Undo (restores inventory).
 - Missed-dose escalation runs inside `useMedicineStore.loadData` (`checkMissedEscalations`): gentle reminder at 60–120 min late, urgent nudge at 2–4 h, once per dose.
 
+### J. Care Circle Cloud Sync (`firebase` JS SDK, config-gated)
+- **Optional link**: a Firestore mirror for the Care Circle, active only when `EXPO_PUBLIC_FIREBASE_*` keys exist (`.env`). Without them the app stays fully local and the Care Circle shows a **“Local only”** pill.
+- **Auth**: silent anonymous sign-in per device (`initializeAuth` + AsyncStorage persistence); the uid keys the member’s identity across devices.
+- **Live data**: circle roster, invite codes (via `invites/{code}`), dose events (deterministic doc id → idempotent upsert) and emoji cheers, all streamed with `onSnapshot` while AsyncStorage remains the offline cache.
+- **Sync is one-directional in the store**: `useCareCircleStore` writes through `src/services/circleSync.ts`; listeners hydrate state and never write back.
+- **Rules + providers are code**: `firebase/firestore.rules` + `firebase/firebase.json` (`auth.providers.anonymous`) deploy with `npx firebase-tools deploy --only auth,firestore:rules`; `firebase/.firebaserc` pins the project.
+- **Verification**: `npm run firebase:smoke` runs a live two-user backend test (rules, join, dose sync, live listener, cheers). See `Context/07_FIREBASE_BACKEND_SETUP.md`.
+
 ---
 
 ## 3. Dependency Blueprint
@@ -93,6 +101,7 @@
     "expo-linking": "~57.0.11",
     "expo-print": "~57.0.2",
     "expo-sharing": "~57.0.22",
+    "firebase": "^12.19.0",
     "react-native-web": "~0.21.0",
     "@expo/metro-runtime": "~57.0.16"
   },

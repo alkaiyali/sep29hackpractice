@@ -14,6 +14,7 @@
 | [04_DATA_SCHEMA_AND_ARCHITECTURE.md](file:///c:/Users/Manel/OneDrive/Desktop/Practice%20Hackathon%20%231/sep29hackpractice/Context/04_DATA_SCHEMA_AND_ARCHITECTURE.md) | Data models, state management, directory architecture, and alarm notification flows. |
 | [05_UPDATE_RULES_AND_MAINTENANCE.md](file:///c:/Users/Manel/OneDrive/Desktop/Practice%20Hackathon%20%231/sep29hackpractice/Context/05_UPDATE_RULES_AND_MAINTENANCE.md) | Mandatory protocol and checklist for keeping this Context folder updated on every app modification. |
 | [06_ROADMAP_AND_IMPROVEMENTS.md](file:///c:/Users/Manel/OneDrive/Desktop/Practice%20Hackathon%20%231/sep29hackpractice/Context/06_ROADMAP_AND_IMPROVEMENTS.md) | Phased product roadmap, milestone breakdown, and prioritized improvement proposals. |
+| [07_FIREBASE_BACKEND_SETUP.md](file:///c:/Users/Manel/OneDrive/Desktop/Practice%20Hackathon%20%231/sep29hackpractice/Context/07_FIREBASE_BACKEND_SETUP.md) | Firebase project setup, Firestore data model, security rules, and Care Circle live-sync verification. |
 
 ---
 

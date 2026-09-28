@@ -96,14 +96,16 @@ The Care Circle feature coordinates family members, guardians, and caregivers to
 3. **Care Circle Hub & Member Roster**:
    - View all members in the circle (e.g., *Dad, Grandma, Sarah*).
    - View medication adherence and logs for each member in real time.
+   - **Live sync status pill**: *Live sync on* / *Connecting…* / *Sync issue (tap to retry)* / *Local only* — the last when no Firebase keys are configured.
 4. **Add Medicine for Reminder for Loved Ones**:
    - Caregivers can add or schedule medicines directly assigned to any member of the circle.
    - Notifications trigger locally on the caregiver's device as monitoring reminders, or sync to the member's profile.
-5. **Circle Activity Feed (local)**:
+5. **Circle Activity Feed (live across devices)**:
    - Recent dose events (taken / skipped / snoozed) with member names and timestamps.
-   - Tappable emoji cheers (❤️, 👍, 🌟) persisted per event.
+   - Local logs and Firestore events are merged and deduped; cloud events carry a **LIVE** badge.
+   - Tappable emoji cheers (❤️, 👍, 🌟): mirrored events cheer through Firestore so every device sees the reaction; local-only events persist on device.
 6. **Missed-Dose Escalation (local tiers)**:
-   - Tier 2 (60–120 min late): gentle reminder notification. Tier 3 (2–4 h late): urgent check-in nudge. One alert per dose; cross-device SMS/push awaits the cloud backend.
+   - Tier 2 (60–120 min late): gentle reminder notification. Tier 3 (2–4 h late): urgent check-in nudge. One alert per dose; cross-device SMS/push awaits the cloud backend (Firestore sync is in place — push needs Cloud Functions + a development build).
 
 ---
 

@@ -58,10 +58,11 @@ export interface Medicine {
 
 ### B. Care Circle Models (`src/types/careCircle.ts`)
 ```typescript
-export type MemberRelation = 'Self' | 'Parent' | 'Child' | 'Spouse' | 'Grandparent' | 'Friend' | 'Other';
+export type MemberRelation = 'Self' | 'Parent' | 'Child' | 'Spouse' | 'Grandparent' | 'Sibling' | 'Friend' | 'Caregiver' | 'Other';
 
 export interface CareCircleMember {
   id: string;
+  uid?: string; // Firebase uid for members joined from their own device
   name: string;
   relation: MemberRelation;
   avatarColor: string;
@@ -73,12 +74,34 @@ export interface CareCircleMember {
 export interface CareCircle {
   id: string;
   name: string;
-  inviteCode: string; // Encrypted or formatted token for QR Code
+  inviteCode: string; // Invite token encoded in the QR payload
   createdById: string;
   members: CareCircleMember[];
   createdAt: string;
 }
+
+/** Cloud link health surfaced in the Care Circle UI. */
+export type CircleSyncStatus = 'local' | 'connecting' | 'online' | 'error';
+
+/** One logged dose mirrored through Firestore (deterministic id → idempotent). */
+export interface CircleDoseEvent {
+  id: string;
+  circleId: string;
+  medicineId: string;
+  medicineName: string;
+  memberId: string; // canonical: uid for device members, generated id otherwise
+  memberName: string;
+  dateStr: string; // YYYY-MM-DD
+  timeStr: string; // HH:mm
+  status: 'taken' | 'skipped' | 'snoozed';
+  actionTime: string; // ISO timestamp of the action
+  actorUid?: string;
+  actorName?: string;
+  cheers?: Record<string, string>; // uid → emoji (one cheer per member)
+}
 ```
+
+> **Cloud mirror (optional).** `useCareCircleStore` also holds `syncStatus`, `myUid`, and `circleFeed` (`CircleDoseEvent[]`), and exposes `initSync`, `publishDoseEvent`, `retractDoseEvent`, `sendRemoteCheer`. When `EXPO_PUBLIC_FIREBASE_*` keys are absent these are no-ops and the app stays local. Firestore layout + rules: `Context/07_FIREBASE_BACKEND_SETUP.md`.
 
 ### C. Medication Logs & User Profile (`src/types/log.ts` & `src/types/user.ts`)
 ```typescript
@@ -198,6 +221,8 @@ sep29hackpractice/
 │   │   ├── labelOcr.ts              # OCR.space label extraction + sig parser
 │   │   ├── report.ts                # Clinical PDF doctor-report builder & share
 │   │   ├── camera.ts                # ImagePicker launcher & storage manager
+│   │   ├── firebase.ts              # Optional Firebase init (anon auth + Firestore)
+│   │   ├── circleSync.ts            # Firestore transport for circles/doses/cheers
 │   │   └── storage.ts               # AsyncStorage engine
 │   ├── theme/
 │   │   └── ThemeProvider.tsx        # system/light/dark provider + useThemedStyles hook
@@ -205,12 +230,16 @@ sep29hackpractice/
 │   │   ├── medicineStore.ts         # Zustand store for medicines and logs
 │   │   ├── vitalsStore.ts           # Zustand store for BP/glucose logs
 │   │   ├── activityStore.ts         # Zustand store for circle cheers
-│   │   ├── careCircleStore.ts       # Zustand store for circles and members
+│   │   ├── careCircleStore.ts       # Zustand store for circles, members + cloud sync
 │   │   └── userStore.ts             # Zustand store for user info and settings
 │   └── types/
 │       ├── medicine.ts
 │       ├── careCircle.ts
 │       └── user.ts
+├── firebase/
+│   ├── firebase.json                # Firestore rules deploy target
+│   └── firestore.rules              # Membership-gated security rules
+├── .env.example                     # Template for EXPO_PUBLIC_FIREBASE_* keys
 ├── app.json                         # Expo configuration (permissions, plugins, icons)
 ├── package.json
 └── tsconfig.json

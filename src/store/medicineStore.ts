@@ -5,6 +5,7 @@ import { safeStorage, StorageKeys } from '../services/storage';
 import { notificationService } from '../services/notifications';
 import { audioHapticsService } from '../services/audioHaptics';
 import { INITIAL_MEDICINES } from '../constants/defaultData';
+import { useCareCircleStore } from './careCircleStore';
 
 /** A scheduled dose is considered missed this long after its time if never logged. */
 export const MISSED_DOSE_GRACE_MINUTES = 60;
@@ -210,6 +211,18 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
         await notificationService.notifyLowSupply({ ...medicine, inventoryCount: newCount }, newCount);
       }
     }
+
+    // Mirror the dose into the Care Circle so every device updates live.
+    // No-op unless Firebase sync is configured and a circle is active.
+    void useCareCircleStore.getState().publishDoseEvent({
+      medicineId,
+      medicineName: medicine?.name ?? 'Medicine',
+      memberId,
+      dateStr: todayDateStr,
+      timeStr,
+      status,
+      actionTime: now.toISOString(),
+    });
   },
 
   undoDose: async (medicineId, timeStr, dateStr) => {
@@ -225,6 +238,14 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
     const updatedLogs = existingLogs.filter((_, i) => i !== idx);
     set({ logs: updatedLogs });
     await safeStorage.setItem(StorageKeys.LOGS, updatedLogs);
+
+    // Retract the mirrored dose from the Care Circle (no-op when not synced)
+    void useCareCircleStore.getState().retractDoseEvent({
+      medicineId,
+      memberId: removed.memberId,
+      dateStr: targetDate,
+      timeStr,
+    });
 
     // Restore inventory if a taken dose is un-logged
     const medicine = get().medicines.find((m) => m.id === medicineId);

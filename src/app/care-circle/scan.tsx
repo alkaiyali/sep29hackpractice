@@ -26,6 +26,7 @@ export default function ScanCareCircleScreen() {
   const [manualCode, setManualCode] = useState('');
 
   const joinCircleFromQR = useCareCircleStore((s) => s.joinCircleFromQR);
+  const joinCircleByCode = useCareCircleStore((s) => s.joinCircleByCode);
   const userName = useUserStore((s) => s.profile.name);
 
   const handleBarcodeScanned = async ({ data }: { data: string }) => {
@@ -51,17 +52,7 @@ export default function ScanCareCircleScreen() {
       return;
     }
 
-    // Wrap in standard QR payload structure
-    const payload = JSON.stringify({
-      version: '1.0',
-      circleId: `circle_code_${manualCode.trim()}`,
-      circleName: `Care Circle (${manualCode.trim()})`,
-      inviterName: 'Circle Admin',
-      inviteCode: manualCode.trim(),
-      timestamp: Date.now(),
-    });
-
-    const result = await joinCircleFromQR(payload, userName);
+    const result = await joinCircleByCode(manualCode.trim(), userName);
     if (result.success) {
       Alert.alert('Joined!', result.message, [
         { text: 'OK', onPress: () => router.back() },

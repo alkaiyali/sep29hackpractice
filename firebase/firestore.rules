@@ -1,0 +1,69 @@
+rules_version = '2';
+
+// Meddy Care Circle — Firestore security rules.
+// Deploy with:  cd firebase && npx firebase-tools deploy --only firestore:rules
+//
+// Model
+//   invites/{inviteCode}                    public lookup for QR / manual join
+//   circles/{circleId}                      memberUids is the source of truth
+//   circles/{circleId}/members/{memberId}   memberId == uid for device members
+//   circles/{circleId}/doseEvents/{eventId} logged doses + cheers
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isMember(circleId) {
+      return signedIn()
+        && request.auth.uid in get(/databases/$(database)/documents/circles/$(circleId)).data.memberUids;
+    }
+
+    // Invite codes are readable by any signed-in user so a QR / typed code can
+    // resolve to a circle. Only the creator or a member can change them.
+    match /invites/{inviteCode} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.createdBy == request.auth.uid;
+      allow update, delete: if isMember(resource.data.circleId);
+    }
+
+    match /circles/{circleId} {
+      allow read: if isMember(circleId);
+
+      // Creating a circle adds only yourself as a member.
+      allow create: if signedIn()
+        && request.resource.data.createdById == request.auth.uid
+        && request.resource.data.memberUids == [request.auth.uid];
+
+      // Members can edit; a non-member may only add themselves (joining).
+      // `arrayUnion` is idempotent, so an existing member re-joining leaves
+      // memberUids unchanged — that counts as valid too.
+      allow update: if isMember(circleId) || (
+        signedIn()
+        && request.auth.uid in request.resource.data.memberUids
+        && (
+          (
+            request.resource.data.memberUids.size() == resource.data.memberUids.size() + 1
+            && request.resource.data.memberUids.hasAll(resource.data.memberUids)
+          )
+          || request.resource.data.memberUids == resource.data.memberUids
+        )
+      );
+
+      allow delete: if isMember(circleId);
+
+      match /members/{memberId} {
+        allow read: if isMember(circleId) || (signedIn() && memberId == request.auth.uid);
+        allow create, update: if isMember(circleId) || (signedIn() && memberId == request.auth.uid);
+        allow delete: if isMember(circleId);
+      }
+
+      match /doseEvents/{eventId} {
+        allow read: if isMember(circleId);
+        allow create, update, delete: if isMember(circleId);
+      }
+    }
+  }
+}

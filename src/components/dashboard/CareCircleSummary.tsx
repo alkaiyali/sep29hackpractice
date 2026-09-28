@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CareCircle } from '../../types/careCircle';
+import { useCareCircleStore } from '../../store/careCircleStore';
 import { ThemeColors } from '../../constants/colors';
 import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 
@@ -18,6 +19,7 @@ export const CareCircleSummary: React.FC<CareCircleSummaryProps> = ({
 }) => {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const syncStatus = useCareCircleStore((s) => s.syncStatus);
   if (!circle) {
     return (
       <View style={styles.emptyContainer}>
@@ -42,7 +44,12 @@ export const CareCircleSummary: React.FC<CareCircleSummaryProps> = ({
           </View>
           <View>
             <Text style={styles.circleName}>{circle.name}</Text>
-            <Text style={styles.circleCount}>{circle.members.length} members connected</Text>
+            <View style={styles.circleCountRow}>
+              {syncStatus === 'online' && <View style={styles.liveDot} />}
+              <Text style={styles.circleCount}>
+                {circle.members.length} members connected{syncStatus === 'online' ? ' · Live' : ''}
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -153,6 +160,17 @@ const createStyles = (colors: ThemeColors) =>
   circleCount: {
     fontSize: 12,
     color: colors.textSecondary,
+  },
+  circleCountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  liveDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: colors.success,
   },
   qrIconBtn: {
     padding: 8,
