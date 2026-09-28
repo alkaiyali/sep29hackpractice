@@ -19,7 +19,11 @@ export const useUserStore = create<UserState>((set, get) => ({
   isLoaded: false,
 
   loadData: async () => {
-    const saved = await safeStorage.getItem<UserProfile>(StorageKeys.USER_PROFILE, INITIAL_USER);
+    let saved = await safeStorage.getItem<UserProfile>(StorageKeys.USER_PROFILE, INITIAL_USER);
+    if (saved.name === 'Alex Rivera') {
+      saved = INITIAL_USER;
+      await safeStorage.setItem(StorageKeys.USER_PROFILE, INITIAL_USER);
+    }
     set({ profile: saved, isLoaded: true });
   },
 

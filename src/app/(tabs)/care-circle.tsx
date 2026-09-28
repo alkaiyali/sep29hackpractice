@@ -96,7 +96,7 @@ export default function CareCircleScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Active Circle Card with QR Code */}
-        {activeCircle && (
+        {activeCircle ? (
           <View style={styles.qrCard}>
             <View style={styles.qrHeader}>
               <View style={styles.qrTitleCol}>
@@ -127,6 +127,30 @@ export default function CareCircleScreen() {
               <Text style={styles.qrInstructions}>
                 Have family members or caregivers scan this QR code to join your Care Circle instantly.
               </Text>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.emptyCircleOnboarding}>
+            <Ionicons name="people-circle-outline" size={60} color={Colors.light.primary} />
+            <Text style={styles.emptyOnboardingTitle}>Start Your Care Circle</Text>
+            <Text style={styles.emptyOnboardingSub}>
+              Connect with family, children, or elderly parents to coordinate and monitor medications collaboratively.
+            </Text>
+            <View style={styles.emptyOnboardingActions}>
+              <TouchableOpacity
+                style={styles.createFirstCircleBtn}
+                onPress={() => setShowCreateModal(true)}
+              >
+                <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
+                <Text style={styles.createFirstCircleBtnText}>Create Care Circle</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.scanFirstCircleBtn}
+                onPress={() => router.push('/care-circle/scan')}
+              >
+                <Ionicons name="qr-code-outline" size={18} color={Colors.light.primary} />
+                <Text style={styles.scanFirstCircleBtnText}>Join via QR</Text>
+              </TouchableOpacity>
             </View>
           </View>
         )}
@@ -705,6 +729,68 @@ const styles = StyleSheet.create({
   },
   modalConfirmText: {
     color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  emptyCircleOnboarding: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.light.surfaceBorder,
+    gap: 10,
+    shadowColor: Colors.light.textPrimary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  emptyOnboardingTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.light.textPrimary,
+  },
+  emptyOnboardingSub: {
+    fontSize: 13,
+    color: Colors.light.textSecondary,
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingHorizontal: 10,
+  },
+  emptyOnboardingActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+    width: '100%',
+  },
+  createFirstCircleBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: Colors.light.primary,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  createFirstCircleBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  scanFirstCircleBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: Colors.light.primarySoft,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  scanFirstCircleBtnText: {
+    color: Colors.light.primaryDark,
+    fontSize: 13,
     fontWeight: '700',
   },
 });

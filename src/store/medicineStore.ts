@@ -35,7 +35,12 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
   isLoaded: false,
 
   loadData: async () => {
-    const savedMeds = await safeStorage.getItem<Medicine[]>(StorageKeys.MEDICINES, INITIAL_MEDICINES);
+    let savedMeds = await safeStorage.getItem<Medicine[]>(StorageKeys.MEDICINES, []);
+    // Filter out previous mock data
+    savedMeds = savedMeds.filter(
+      (m) => !['med_amoxicillin', 'med_vitamind', 'med_lisinopril_mom'].includes(m.id)
+    );
+
     const savedLogs = await safeStorage.getItem<MedicationLog[]>(StorageKeys.LOGS, []);
     set({ medicines: savedMeds, logs: savedLogs, isLoaded: true });
   },
@@ -209,9 +214,13 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
   },
 
   getStreakDays: () => {
-    // Computes consecutive days with >=80% adherence
     const logs = get().logs;
-    if (logs.length === 0) return 3; // Default pleasant initial momentum
-    return 5;
+    if (logs.length === 0) return 0;
+    const takenLogs = logs.filter((l) => l.status === 'taken');
+    if (takenLogs.length === 0) return 0;
+
+    // Count unique days where at least one dose was taken
+    const uniqueDays = new Set(takenLogs.map((l) => l.scheduledTime.split('T')[0]));
+    return uniqueDays.size;
   },
 }));

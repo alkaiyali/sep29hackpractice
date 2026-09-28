@@ -143,28 +143,6 @@ To take Meddy from an agile MVP to a market-leading, clinically reliable health 
 
 ---
 
-## ⌚ Milestone 5: Wearables, Smart NFC & Universal Accessibility
-
-*Focus: Zero-friction interaction for aging adults and users with motor/vision impairments.*
-
-### 5.1 Senior & High-Legibility Mode
-- **Features**:
-  - Extra-large typography option with Dynamic Type scaling.
-  - High-contrast color mode exceeding WCAG AAA standards.
-  - Audio voice-readout: Tap a button to have the app speak aloud: *"Take two white capsules of Amoxicillin with water."*
-
-### 5.2 Wear OS & Apple Watch Companion
-- **Features**:
-  - Wrist notifications with actionable "Taken" / "Snooze" buttons.
-  - Complication on watch face showing next dose time and medicine icon.
-
-### 5.3 NFC Smart Pillbox / Tag Tapping
-- **Features**:
-  - Users stick a cheap $0.20 NFC sticker on their pill container.
-  - Tapping the phone against the pill bottle instantly logs the dose as taken without unlocking the phone or opening menus.
-
----
-
 ## 📊 Effort vs. Value Prioritization Matrix
 
 | Feature | Effort | Clinical Value | User Value | Recommended Priority |
@@ -176,5 +154,4 @@ To take Meddy from an agile MVP to a market-leading, clinically reliable health 
 | **Doctor Adherence PDF Export** | Low | High | High | **P2 (Sprint 3)** |
 | **Drug Interaction Checker** | High | Critical | High | **P3 (Sprint 4)** |
 | **Senior Voice / High-Legibility Mode** | Low | Medium | High | **P3 (Sprint 4)** |
-| **Smartwatch Wearable Support** | High | Medium | Medium | **P4 (Future)** |
-| **NFC Tap-to-Take** | Medium | Medium | Cool factor | **P4 (Future)** |
+

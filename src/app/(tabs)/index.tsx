@@ -55,7 +55,11 @@ export default function DashboardScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.dateLabel}>{todayFormatted}</Text>
-          <Text style={styles.greetingTitle}>Hello, {user.name.split(' ')[0]} 👋</Text>
+          <Text style={styles.greetingTitle}>
+            {user.name && user.name !== 'My Profile'
+              ? `Hello, ${user.name.split(' ')[0]} 👋`
+              : 'Welcome to Meddy 👋'}
+          </Text>
         </View>
         <TouchableOpacity
           style={styles.notificationBell}

@@ -23,10 +23,13 @@ export const useCareCircleStore = create<CareCircleState>((set, get) => ({
   isLoaded: false,
 
   loadData: async () => {
-    const savedCircles = await safeStorage.getItem<CareCircle[]>(StorageKeys.CARE_CIRCLES, [INITIAL_CARE_CIRCLE]);
+    let savedCircles = await safeStorage.getItem<CareCircle[]>(StorageKeys.CARE_CIRCLES, []);
+    // Filter out previous mock data if present
+    savedCircles = savedCircles.filter((c) => c.id !== 'circle_rivera_family');
+
     const savedActiveId = await safeStorage.getItem<string | null>(
       StorageKeys.ACTIVE_CIRCLE_ID,
-      INITIAL_CARE_CIRCLE.id
+      null
     );
 
     set({
@@ -162,8 +165,8 @@ export const useCareCircleStore = create<CareCircleState>((set, get) => ({
 
   getActiveCircle: () => {
     const { circles, activeCircleId } = get();
-    if (!activeCircleId) return circles[0];
-    return circles.find((c) => c.id === activeCircleId) || circles[0];
+    if (!activeCircleId) return circles.length > 0 ? circles[0] : undefined;
+    return circles.find((c) => c.id === activeCircleId) || (circles.length > 0 ? circles[0] : undefined);
   },
 
   getGenerateQRPayload: (circleId) => {
@@ -174,7 +177,7 @@ export const useCareCircleStore = create<CareCircleState>((set, get) => ({
       version: '1.0',
       circleId: circle.id,
       circleName: circle.name,
-      inviterName: 'Alex Rivera',
+      inviterName: circle.members.find((m) => m.isOwner)?.name || 'Care Circle Admin',
       inviteCode: circle.inviteCode,
       timestamp: Date.now(),
     };

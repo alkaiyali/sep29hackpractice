@@ -4,11 +4,8 @@ import { UserProfile } from '../types/user';
 
 export const INITIAL_USER: UserProfile = {
   id: 'user_self',
-  name: 'Alex Rivera',
-  bloodType: 'O+',
-  emergencyContactName: 'Sarah Rivera (Spouse)',
-  emergencyContactPhone: '+1 (555) 234-5678',
-  allergies: ['Penicillin', 'Sulfa drugs'],
+  name: 'My Profile',
+  allergies: [],
   notificationsEnabled: true,
   defaultReminderSettings: {
     soundEnabled: true,
@@ -19,102 +16,6 @@ export const INITIAL_USER: UserProfile = {
   },
 };
 
-export const INITIAL_CARE_CIRCLE: CareCircle = {
-  id: 'circle_rivera_family',
-  name: 'Rivera Family Care',
-  inviteCode: 'MEDDY-RIV-8942',
-  createdById: 'user_self',
-  createdAt: new Date().toISOString(),
-  members: [
-    {
-      id: 'user_self',
-      name: 'Alex Rivera',
-      relation: 'Self',
-      avatarColor: '#0D9488',
-      isOwner: true,
-      joinedAt: new Date(Date.now() - 14 * 86400000).toISOString(),
-    },
-    {
-      id: 'member_mom',
-      name: 'Maria Rivera (Mom)',
-      relation: 'Parent',
-      avatarColor: '#0284C7',
-      isOwner: false,
-      joinedAt: new Date(Date.now() - 10 * 86400000).toISOString(),
-    },
-    {
-      id: 'member_leo',
-      name: 'Leo (Son)',
-      relation: 'Child',
-      avatarColor: '#F59E0B',
-      isOwner: false,
-      joinedAt: new Date(Date.now() - 5 * 86400000).toISOString(),
-    },
-  ],
-};
+export const INITIAL_CARE_CIRCLE: CareCircle | null = null;
 
-export const INITIAL_MEDICINES: Medicine[] = [
-  {
-    id: 'med_amoxicillin',
-    name: 'Amoxicillin',
-    dosage: 500,
-    dosageUnit: 'mg',
-    form: 'capsule',
-    instruction: 'with_meal',
-    optionalNotes: 'Complete the full 7-day course. Take with plenty of water.',
-    scheduleTimes: ['08:00', '20:00'],
-    daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
-    reminderSettings: {
-      soundEnabled: true,
-      soundName: 'medical_pulse',
-      vibrationEnabled: true,
-      vibrationPattern: 'heavy',
-      snoozeMinutes: 10,
-    },
-    forMemberId: 'user_self',
-    createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-  },
-  {
-    id: 'med_vitamind',
-    name: 'Vitamin D3 & K2',
-    dosage: 2000,
-    dosageUnit: 'IU',
-    form: 'pill',
-    instruction: 'after_meal',
-    optionalNotes: 'Take after breakfast for maximum fat-soluble absorption.',
-    scheduleTimes: ['09:00'],
-    daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
-    reminderSettings: {
-      soundEnabled: true,
-      soundName: 'gentle',
-      vibrationEnabled: true,
-      vibrationPattern: 'light',
-      snoozeMinutes: 15,
-    },
-    forMemberId: 'user_self',
-    createdAt: new Date(Date.now() - 10 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 10 * 86400000).toISOString(),
-  },
-  {
-    id: 'med_lisinopril_mom',
-    name: 'Lisinopril (Blood Pressure)',
-    dosage: 10,
-    dosageUnit: 'mg',
-    form: 'pill',
-    instruction: 'before_meal',
-    optionalNotes: 'Mom: Check blood pressure before taking morning dose.',
-    scheduleTimes: ['08:30'],
-    daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
-    reminderSettings: {
-      soundEnabled: true,
-      soundName: 'bell',
-      vibrationEnabled: true,
-      vibrationPattern: 'medium',
-      snoozeMinutes: 10,
-    },
-    forMemberId: 'member_mom',
-    createdAt: new Date(Date.now() - 7 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 7 * 86400000).toISOString(),
-  },
-];
+export const INITIAL_MEDICINES: Medicine[] = [];

@@ -8,8 +8,15 @@ export const cameraService = {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
           Alert.alert(
-            'Camera Permission Required',
-            'Please allow camera access in your device settings to photograph medicines.'
+            'Camera Permission Needed',
+            'Camera access is required to take photos of medicine. Would you like to select from your photo library instead?',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Choose from Gallery',
+                onPress: () => cameraService.pickPhotoFromGallery(),
+              },
+            ]
           );
           return null;
         }
@@ -27,8 +34,14 @@ export const cameraService = {
       }
       return null;
     } catch (err) {
-      console.warn('[cameraService] Error capturing photo:', err);
-      return null;
+      console.warn('[cameraService] Camera capture unavailable or threw error:', err);
+      // Fallback to gallery picker on simulator / web / devices without active camera
+      Alert.alert(
+        'Camera Unavailable',
+        'Camera is not accessible on this device. Opening photo gallery instead.',
+        [{ text: 'OK' }]
+      );
+      return await cameraService.pickPhotoFromGallery();
     }
   },
 
@@ -38,8 +51,8 @@ export const cameraService = {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
           Alert.alert(
-            'Photo Library Permission Required',
-            'Please allow photo library access in your device settings to choose a medicine photo.'
+            'Photo Library Permission Needed',
+            'Please enable photo library access in device settings to attach medicine photos.'
           );
           return null;
         }
