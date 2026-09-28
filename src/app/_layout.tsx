@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useMedicineStore } from '../store/medicineStore';
+import * as Notifications from 'expo-notifications';
+import { useMedicineStore, nearestScheduleTime } from '../store/medicineStore';
 import { useCareCircleStore } from '../store/careCircleStore';
 import { useUserStore } from '../store/userStore';
 import { useActivityStore } from '../store/activityStore';
@@ -41,6 +42,35 @@ function RootNavigator() {
 
     initApp();
   }, [loadMedicines, loadCircles, loadUser, loadActivity, loadVitals, loadSounds]);
+
+  // Handle notification action buttons (Take / Snooze from the shade)
+  useEffect(() => {
+    const sub = Notifications.addNotificationResponseReceivedListener(async (response) => {
+      const actionId = response.actionIdentifier;
+      if (actionId !== 'ACTION_TAKE' && actionId !== 'ACTION_SNOOZE') return;
+
+      const data = response.notification.request.content.data as {
+        medicineId?: string;
+        forMemberId?: string;
+        timeStr?: string;
+      };
+      if (!data?.medicineId) return;
+
+      const store = useMedicineStore.getState();
+      const medicine = store.medicines.find((m) => m.id === data.medicineId);
+      if (!medicine) return;
+
+      const memberId = data.forMemberId || medicine.forMemberId || 'user_self';
+      const timeStr = data.timeStr || nearestScheduleTime(medicine.scheduleTimes);
+      await store.logDose(
+        medicine.id,
+        memberId,
+        timeStr,
+        actionId === 'ACTION_TAKE' ? 'taken' : 'snoozed'
+      );
+    });
+    return () => sub.remove();
+  }, []);
 
   return (
     <>

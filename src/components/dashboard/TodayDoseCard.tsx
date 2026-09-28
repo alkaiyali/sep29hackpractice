@@ -13,6 +13,7 @@ interface TodayDoseCardProps {
   onTake: () => void;
   onSnooze: () => void;
   onSkip: () => void;
+  onUndo?: () => void;
   onPressCard?: () => void;
 }
 
@@ -22,6 +23,7 @@ export const TodayDoseCard: React.FC<TodayDoseCardProps> = ({
   onTake,
   onSnooze,
   onSkip,
+  onUndo,
   onPressCard,
 }) => {
   const { colors } = useTheme();
@@ -188,6 +190,12 @@ export const TodayDoseCard: React.FC<TodayDoseCardProps> = ({
           <Text style={styles.completedFooterText}>
             {status === 'taken' ? 'Dose recorded successfully' : 'Dose marked as skipped'}
           </Text>
+          {onUndo && (
+            <TouchableOpacity onPress={onUndo} style={styles.undoBtn} hitSlop={8}>
+              <Ionicons name="arrow-undo-outline" size={14} color={colors.primary} />
+              <Text style={styles.undoText}>Undo</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </TouchableOpacity>
@@ -384,7 +392,22 @@ const createStyles = (colors: ThemeColors) =>
     borderTopColor: colors.surfaceBorder,
   },
   completedFooterText: {
+    flex: 1,
     fontSize: 12,
     color: colors.textMuted,
+  },
+  undoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: colors.primarySoft,
+  },
+  undoText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.primaryDark,
   },
 });

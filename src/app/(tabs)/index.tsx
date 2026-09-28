@@ -29,7 +29,7 @@ export default function DashboardScreen() {
   const router = useRouter();
 
   const user = useUserStore((s) => s.profile);
-  const { getTodayDoses, getTodayAdherence, getStreakDays, logDose, loadData, getLowSupplyMedicines } =
+  const { getTodayDoses, getTodayAdherence, getStreakDays, logDose, undoDose, loadData, getLowSupplyMedicines } =
     useMedicineStore();
   const activeCircle = useCareCircleStore((s) => s.getActiveCircle());
 
@@ -217,6 +217,7 @@ export default function DashboardScreen() {
                 onSkip={() =>
                   logDose(dose.medicine.id, dose.medicine.forMemberId, dose.timeStr, 'skipped')
                 }
+                onUndo={() => undoDose(dose.medicine.id, dose.timeStr)}
                 onPressCard={() => router.push('/(tabs)/medicines')}
               />
             ))}

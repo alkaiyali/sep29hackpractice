@@ -29,6 +29,23 @@ export function toLocalDateStr(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
+/** Closest "HH:mm" schedule time to right now (for notification-action fallback). */
+export function nearestScheduleTime(times: string[], now = new Date()): string {
+  if (times.length === 0) return '08:00';
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  let best = times[0];
+  let bestDiff = Infinity;
+  for (const t of times) {
+    const [h, m] = t.split(':').map(Number);
+    const diff = Math.abs(h * 60 + m - nowMins);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      best = t;
+    }
+  }
+  return best;
+}
+
 interface MedicineState {
   medicines: Medicine[];
   logs: MedicationLog[];
@@ -39,6 +56,7 @@ interface MedicineState {
   updateMedicine: (id: string, updates: Partial<Medicine>) => Promise<void>;
   deleteMedicine: (id: string) => Promise<void>;
   logDose: (medicineId: string, memberId: string, timeStr: string, status: DoseStatus, notes?: string) => Promise<void>;
+  undoDose: (medicineId: string, timeStr: string, dateStr?: string) => Promise<void>;
   getDosesForDate: (date: Date) => TodayDoseItem[];
   getTodayDoses: () => TodayDoseItem[];
   getAdherenceForDate: (date: Date) => DailyAdherenceSummary;
@@ -191,6 +209,32 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
         await notificationService.notifyLowSupply({ ...medicine, inventoryCount: newCount }, newCount);
       }
     }
+  },
+
+  undoDose: async (medicineId, timeStr, dateStr) => {
+    const targetDate = dateStr || toLocalDateStr(new Date());
+    const scheduledTime = `${targetDate}T${timeStr}:00`;
+    const existingLogs = get().logs;
+    const idx = existingLogs.findIndex(
+      (l) => l.medicineId === medicineId && l.scheduledTime === scheduledTime
+    );
+    if (idx < 0) return;
+
+    const removed = existingLogs[idx];
+    const updatedLogs = existingLogs.filter((_, i) => i !== idx);
+    set({ logs: updatedLogs });
+    await safeStorage.setItem(StorageKeys.LOGS, updatedLogs);
+
+    // Restore inventory if a taken dose is un-logged
+    const medicine = get().medicines.find((m) => m.id === medicineId);
+    if (medicine && removed.status === 'taken' && medicine.inventoryCount != null) {
+      const updatedMedicines = get().medicines.map((m) =>
+        m.id === medicineId ? { ...m, inventoryCount: (m.inventoryCount as number) + 1 } : m
+      );
+      set({ medicines: updatedMedicines });
+      await safeStorage.setItem(StorageKeys.MEDICINES, updatedMedicines);
+    }
+    await audioHapticsService.triggerWarningFeedback();
   },
 
   getDosesForDate: (date) => {
