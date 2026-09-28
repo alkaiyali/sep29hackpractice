@@ -7,6 +7,8 @@ export const StorageKeys = {
   ACTIVE_CIRCLE_ID: '@meddy_active_circle_id_v1',
   USER_PROFILE: '@meddy_user_profile_v1',
   THEME_PREF: '@meddy_theme_pref_v1',
+  ESCALATION_ALERTS: '@meddy_escalation_alerts_v1',
+  REACTIONS: '@meddy_reactions_v1',
 };
 
 export const safeStorage = {

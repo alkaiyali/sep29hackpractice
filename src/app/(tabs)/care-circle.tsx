@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import { useCareCircleStore } from '../../store/careCircleStore';
 import { useMedicineStore } from '../../store/medicineStore';
+import { useActivityStore, REACTION_EMOJIS } from '../../store/activityStore';
 import { useUserStore } from '../../store/userStore';
 import { ThemeColors } from '../../constants/colors';
 import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
@@ -37,6 +38,9 @@ export default function CareCircleScreen() {
   } = useCareCircleStore();
 
   const medicines = useMedicineStore((s) => s.medicines);
+  const logs = useMedicineStore((s) => s.logs);
+  const reactions = useActivityStore((s) => s.reactions);
+  const sendCheer = useActivityStore((s) => s.sendCheer);
 
   const activeCircle = getActiveCircle();
   const qrPayload = activeCircle ? getGenerateQRPayload(activeCircle.id) : '';
@@ -79,6 +83,28 @@ export default function CareCircleScreen() {
   const circleMedicines = medicines.filter(
     (m) => m.forMemberId !== 'user_self' && m.forMemberId !== user.id
   );
+
+  const medicineNameById = new Map(medicines.map((m) => [m.id, m.name]));
+  const memberNameById = new Map(
+    (activeCircle?.members || []).map((m) => [m.id, m.id === 'user_self' ? 'You' : m.name])
+  );
+
+  const recentActivity = [...logs]
+    .sort((a, b) => b.actionTime.localeCompare(a.actionTime))
+    .slice(0, 15);
+
+  const activityMeta = (status: string): { icon: keyof typeof Ionicons.glyphMap; text: string } => {
+    switch (status) {
+      case 'taken':
+        return { icon: 'checkmark-circle', text: 'took' };
+      case 'skipped':
+        return { icon: 'close-circle-outline', text: 'skipped' };
+      case 'snoozed':
+        return { icon: 'time-outline', text: 'snoozed' };
+      default:
+        return { icon: 'ellipse-outline', text: status };
+    }
+  };
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -200,6 +226,66 @@ export default function CareCircleScreen() {
             </View>
           ))}
         </View>
+
+        {/* Circle Activity Feed */}
+        <View style={styles.sectionHeaderRow}>
+          <View>
+            <Text style={styles.sectionTitle}>Circle Activity</Text>
+            <Text style={styles.sectionSubtitle}>Recent dose wins across your circle</Text>
+          </View>
+        </View>
+
+        {recentActivity.length === 0 ? (
+          <View style={styles.emptyActivity}>
+            <Ionicons name="chatbubbles-outline" size={36} color={colors.textMuted} />
+            <Text style={styles.emptyActivityText}>
+              No activity yet — log a dose and cheer each other on.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.activityList}>
+            {recentActivity.map((log) => {
+              const meta = activityMeta(log.status);
+              const cheers = reactions[log.id] || {};
+              return (
+                <View key={log.id} style={styles.activityCard}>
+                  <Ionicons name={meta.icon} size={20} color={colors.primary} />
+                  <View style={styles.activityBody}>
+                    <Text style={styles.activityText} numberOfLines={2}>
+                      <Text style={styles.activityName}>
+                        {memberNameById.get(log.memberId) || 'Someone'}
+                      </Text>{' '}
+                      {meta.text} {medicineNameById.get(log.medicineId) || 'a medicine'}
+                    </Text>
+                    <Text style={styles.activityTime}>
+                      {new Date(log.actionTime).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
+                    </Text>
+                    <View style={styles.cheerRow}>
+                      {REACTION_EMOJIS.map((emoji) => (
+                        <TouchableOpacity
+                          key={emoji}
+                          style={styles.cheerBtn}
+                          onPress={() => sendCheer(log.id, emoji)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.cheerEmoji}>{emoji}</Text>
+                          {(cheers[emoji] || 0) > 0 && (
+                            <Text style={styles.cheerCount}>{cheers[emoji]}</Text>
+                          )}
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
 
         {/* Loved Ones' Medicine Section */}
         <View style={styles.sectionHeaderRow}>
@@ -546,6 +632,74 @@ const createStyles = (colors: ThemeColors) =>
     fontSize: 12,
     fontWeight: '700',
     color: colors.primaryDark,
+  },
+  emptyActivity: {
+    backgroundColor: colors.surface,
+    borderRadius: 18,
+    padding: 22,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    gap: 8,
+  },
+  emptyActivityText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  activityList: {
+    gap: 10,
+  },
+  activityCard: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    gap: 12,
+  },
+  activityBody: {
+    flex: 1,
+    gap: 3,
+  },
+  activityText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 18,
+  },
+  activityName: {
+    fontWeight: '800',
+    color: colors.textPrimary,
+  },
+  activityTime: {
+    fontSize: 11,
+    color: colors.textMuted,
+  },
+  cheerRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 6,
+  },
+  cheerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.surfaceSubtle,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
+  cheerEmoji: {
+    fontSize: 14,
+  },
+  cheerCount: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textSecondary,
   },
   emptyCircleMeds: {
     backgroundColor: colors.surface,

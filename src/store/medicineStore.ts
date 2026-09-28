@@ -45,6 +45,7 @@ interface MedicineState {
   getTodayAdherence: () => DailyAdherenceSummary;
   getDoseHistory: (days?: number) => DailyAdherenceSummary[];
   getLowSupplyMedicines: () => Medicine[];
+  checkMissedEscalations: () => Promise<void>;
   getStreakDays: () => number;
 }
 
@@ -57,6 +58,7 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
     const savedMeds = await safeStorage.getItem<Medicine[]>(StorageKeys.MEDICINES, INITIAL_MEDICINES);
     const savedLogs = await safeStorage.getItem<MedicationLog[]>(StorageKeys.LOGS, []);
     set({ medicines: savedMeds, logs: savedLogs, isLoaded: true });
+    await get().checkMissedEscalations();
   },
 
   addMedicine: async (medicineData) => {
@@ -280,6 +282,34 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
         m.inventoryCount != null &&
         m.inventoryCount <= (m.refillThreshold ?? DEFAULT_REFILL_THRESHOLD)
     );
+  },
+
+  checkMissedEscalations: async () => {
+    // Local Tier-2/3 safety net: alert once per recently-missed dose.
+    // Tier 2 (60–120 min late): gentle reminder. Tier 3 (2–4 h late): urgent check-in nudge.
+    const today = new Date();
+    const dateStr = toLocalDateStr(today);
+    const doses = get().getDosesForDate(today);
+    const alerted = await safeStorage.getItem<string[]>(StorageKeys.ESCALATION_ALERTS, []);
+    const alertedSet = new Set(alerted);
+    const now = Date.now();
+    let changed = false;
+
+    for (const dose of doses) {
+      if (dose.status !== 'missed') continue;
+      const key = `${dateStr}|${dose.medicine.id}|${dose.timeStr}`;
+      if (alertedSet.has(key)) continue;
+      const scheduledMs = new Date(`${dateStr}T${dose.timeStr}:00`).getTime();
+      const minsLate = (now - scheduledMs) / 60000;
+      if (minsLate < MISSED_DOSE_GRACE_MINUTES || minsLate > 240) continue;
+      await notificationService.notifyMissedDose(dose.medicine, dose.timeStr, minsLate >= 120);
+      alertedSet.add(key);
+      changed = true;
+    }
+
+    if (changed) {
+      await safeStorage.setItem(StorageKeys.ESCALATION_ALERTS, [...alertedSet].slice(-200));
+    }
   },
 
   getStreakDays: () => {

@@ -160,8 +160,44 @@ export const notificationService = {
     }
   },
 
-  async notifyLowSupply(medicine: Medicine, remaining: number): Promise<void> {
+  async notifyMissedDose(medicine: Medicine, timeStr: string, urgent: boolean): Promise<void> {
+    const title = urgent ? `🚨 Still missed: ${medicine.name}` : `⚠️ Missed dose: ${medicine.name}`;
+    const body = urgent
+      ? `${medicine.dosage} ${medicine.dosageUnit} at ${timeStr} is still unlogged. Please check in with your care circle.`
+      : `${medicine.dosage} ${medicine.dosageUnit} at ${timeStr} was missed. Open Meddy to log it now.`;
+
     if (Platform.OS === 'web') {
+      alert(`[Notification] ${title}: ${body}`);
+      return;
+    }
+
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title,
+          body,
+          data: {
+            medicineId: medicine.id,
+            missedDose: true,
+          },
+          categoryIdentifier: NOTIFICATION_CATEGORY_ID,
+          sound: 'default',
+          priority: urgent
+            ? Notifications.AndroidNotificationPriority.MAX
+            : Notifications.AndroidNotificationPriority.HIGH,
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: 1,
+          repeats: false,
+        },
+      });
+    } catch (err) {
+      console.warn('[notificationService] Error sending missed-dose alert:', err);
+    }
+  },
+
+  async notifyLowSupply(medicine: Medicine, remaining: number): Promise<void> {    if (Platform.OS === 'web') {
       alert(`Low supply: only ${remaining} left of ${medicine.name}. Time to request a refill.`);
       return;
     }
