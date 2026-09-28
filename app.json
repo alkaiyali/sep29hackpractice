@@ -1,0 +1,65 @@
+{
+  "expo": {
+    "name": "Meddy",
+    "slug": "meddy",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "meddy",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D9488"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.meddy.health",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Meddy needs access to your camera to photograph medicine packages and scan Care Circle QR codes.",
+        "NSPhotoLibraryUsageDescription": "Meddy needs access to your photo library to attach photos of medicines."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0D9488"
+      },
+      "package": "com.meddy.health",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED",
+        "SCHEDULE_EXACT_ALARM"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Meddy to access your camera to photograph medicine and scan Care Circle QR codes."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Meddy to access your photos to attach medicine images."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#0D9488"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
