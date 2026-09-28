@@ -56,9 +56,11 @@
 - `src/services/interactions.ts`: 10 high-risk drug-pair rules checked at save time; major risks block with an override alert.
 - `src/services/labelOcr.ts`: prescription-label OCR via OCR.space (camera/gallery capture → parse name/strength/directions → confirm screen → prefill add form). Internet required; manual entry always available.
 
-### I. Engagement & Vitals (offline)
+### I. Engagement, Vitals & Custom Sounds (offline)
 - `src/store/activityStore.ts`: per-log emoji cheers (❤️/👍/🌟), persisted; rendered as the Circle Activity feed.
 - `src/store/vitalsStore.ts` + `src/components/vitals/VitalsPrompt.tsx`: BP/glucose capture in a bottom sheet after each taken dose (plus manual entry); recent readings in Profile; vitals table in the PDF report.
+- `src/store/soundStore.ts`: user-imported alarm audio (`expo-document-picker` → app storage, max 20). Selectable per medicine in `AlarmSettingsView`; `audioHaptics` resolves `custom:<id>` refs with default-chime fallback.
+- Notification shade actions (Take/Snooze) log doses via a response listener in `_layout`; completed doses offer Undo (restores inventory).
 - Missed-dose escalation runs inside `useMedicineStore.loadData` (`checkMissedEscalations`): gentle reminder at 60–120 min late, urgent nudge at 2–4 h, once per dose.
 
 ---

@@ -51,6 +51,7 @@ Before marking any task, feature, or bug fix as complete:
 | 2026-09-28 | Mobile Developer (AI) | Fixed phantom 100% on empty schedules (neutral — state); generated branded splash/logo asset set (capsule + pulse mark) | `src/store/medicineStore.ts`, `src/components/dashboard/AdherenceCard.tsx`, `assets/*`, `app.json` |
 | 2026-09-28 | Mobile Developer (AI) | Roadmap sweep part 1: bundled WAV chimes (1.3), local missed-dose escalation tiers + activity feed with cheers (2.2 local / 2.3 local) | `assets/sounds/*`, `src/services/audioHaptics.ts`, `src/services/notifications.ts`, `src/store/*`, `src/app/(tabs)/care-circle.tsx` |
 | 2026-09-28 | Mobile Developer (AI) | Roadmap sweep part 2: precaution engine + interaction gate (3.2/3.3), vitals tracking with post-dose prompt (4.2), OCR label scanner (3.1), vitals in doctor PDF | `src/services/precautions.ts`, `src/services/interactions.ts`, `src/services/labelOcr.ts`, `src/store/vitalsStore.ts`, `src/components/vitals/*`, `src/app/medicine/*`, `src/services/report.ts` |
+| 2026-09-28 | Mobile Developer (AI) | Custom alarm sounds (import MP3/WAV/M4A, per-medicine selection, preview, delete) + QoL batch: working notification actions, dose undo, repeat-day picker, cabinet search, relative time labels, supply stepper | `src/store/soundStore.ts`, `src/services/audioHaptics.ts`, `src/components/medicine/AlarmSettingsView.tsx`, `src/app/_layout.tsx`, `src/store/medicineStore.ts`, `src/app/medicine/add.tsx`, `src/app/(tabs)/medicines.tsx`, `src/components/dashboard/TodayDoseCard.tsx` |
 
 
 
