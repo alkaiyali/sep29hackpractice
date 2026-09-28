@@ -249,7 +249,7 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
     const snoozed = doses.filter((d) => d.status === 'snoozed').length;
     const missed = doses.filter((d) => d.status === 'missed').length;
 
-    const percentage = totalDue > 0 ? Math.round((taken / totalDue) * 100) : 100;
+    const percentage = totalDue > 0 ? Math.round((taken / totalDue) * 100) : 0;
 
     return {
       date: toLocalDateStr(date),

@@ -15,6 +15,7 @@ export const AdherenceCard: React.FC<AdherenceCardProps> = ({ summary, streakDay
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
   const { taken, totalDue, percentage, missed } = summary;
+  const isEmpty = totalDue === 0;
 
   return (
     <View style={styles.hero}>
@@ -24,9 +25,11 @@ export const AdherenceCard: React.FC<AdherenceCardProps> = ({ summary, streakDay
             <Ionicons name="pulse" size={13} color={colors.heroSub} />
             <Text style={styles.label}>Today's Adherence</Text>
           </View>
-          <Text style={styles.percentageText}>{percentage}%</Text>
+          <Text style={styles.percentageText}>{isEmpty ? '—' : `${percentage}%`}</Text>
           <Text style={styles.fractionText}>
-            {taken} of {totalDue} {totalDue === 1 ? 'dose' : 'doses'} · {missed > 0 ? `${missed} missed` : 'on track'}
+            {isEmpty
+              ? 'No doses scheduled today'
+              : `${taken} of ${totalDue} ${totalDue === 1 ? 'dose' : 'doses'} · ${missed > 0 ? `${missed} missed` : 'on track'}`}
           </Text>
         </View>
 
@@ -50,7 +53,9 @@ export const AdherenceCard: React.FC<AdherenceCardProps> = ({ summary, streakDay
           color={colors.heroSub}
         />
         <Text style={styles.messageText} numberOfLines={2}>
-          {percentage === 100
+          {isEmpty
+            ? 'Add your first medicine to start your streak.'
+            : percentage === 100
             ? 'Perfect day — every dose taken.'
             : missed > 0
             ? `${missed} ${missed === 1 ? 'dose' : 'doses'} missed — tap history to review.`
