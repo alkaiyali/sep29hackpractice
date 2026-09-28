@@ -2,6 +2,15 @@ import { Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { VibrationPattern, AlertSound } from '../types/medicine';
 
+// Bundled alarm chimes (assets/sounds/*.wav) — calm, branded, work offline.
+const BUNDLED_SOUNDS: Record<AlertSound, number> = {
+  default: require('../../assets/sounds/default.wav'),
+  gentle: require('../../assets/sounds/gentle.wav'),
+  bell: require('../../assets/sounds/bell.wav'),
+  radar: require('../../assets/sounds/radar.wav'),
+  medical_pulse: require('../../assets/sounds/medical_pulse.wav'),
+};
+
 // Helper to generate a minimal valid PCM WAV data URI with smooth exponential decay
 function generateChimeWavUri(frequency: number, durationSec: number = 1.0): string {
   const sampleRate = 22050;
@@ -108,7 +117,7 @@ export const audioHapticsService = {
   async playAlarmSound(soundName: AlertSound, enabled: boolean): Promise<void> {
     if (!enabled) return;
 
-    // Frequencies corresponding to sound choices
+    // Frequencies corresponding to sound choices (Web Audio synth path)
     let frequency = 587.33; // D5 (default)
     let duration = 1.2;
     if (soundName === 'gentle') {
@@ -153,7 +162,8 @@ export const audioHapticsService = {
       }
     }
 
-    // Native Platform (or Web Audio fallback): use expo-av with data URI
+    // Native Platform (or Web Audio fallback): bundled chime first,
+    // synthesized data-URI chime as offline fallback.
     try {
       const { Audio } = await import('expo-av');
       await Audio.setAudioModeAsync({
@@ -162,17 +172,31 @@ export const audioHapticsService = {
         shouldDuckAndroid: true,
       });
 
-      const soundUri = generateChimeWavUri(frequency, duration);
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: soundUri },
-        { shouldPlay: true, volume: 1.0 }
-      );
-
-      sound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
-          sound.unloadAsync();
-        }
-      });
+      let source: { uri: string } | number = BUNDLED_SOUNDS[soundName];
+      try {
+        const { sound } = await Audio.Sound.createAsync(source, {
+          shouldPlay: true,
+          volume: 1.0,
+        });
+        sound.setOnPlaybackStatusUpdate((status) => {
+          if (status.isLoaded && status.didJustFinish) {
+            sound.unloadAsync();
+          }
+        });
+        return;
+      } catch (assetErr) {
+        console.warn('[audioHapticsService] Bundled chime failed, using synth fallback:', assetErr);
+        source = { uri: generateChimeWavUri(frequency, duration) };
+        const { sound } = await Audio.Sound.createAsync(source, {
+          shouldPlay: true,
+          volume: 1.0,
+        });
+        sound.setOnPlaybackStatusUpdate((status) => {
+          if (status.isLoaded && status.didJustFinish) {
+            sound.unloadAsync();
+          }
+        });
+      }
     } catch (err) {
       console.warn('[audioHapticsService] Audio playback error:', err);
     }
