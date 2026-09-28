@@ -5,16 +5,22 @@ import { Medicine } from '../types/medicine';
 export const NOTIFICATION_CATEGORY_ID = 'MEDICATION_ALARM';
 
 // Configure foreground presentation behavior
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-    priority: Notifications.AndroidNotificationPriority.MAX,
-  }),
-});
+if (Platform.OS !== 'web') {
+  try {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
+        priority: Notifications.AndroidNotificationPriority.MAX,
+      }),
+    });
+  } catch (err) {
+    console.warn('[notifications] Failed to set notification handler:', err);
+  }
+}
 
 export const notificationService = {
   async registerNotificationCategories(): Promise<void> {

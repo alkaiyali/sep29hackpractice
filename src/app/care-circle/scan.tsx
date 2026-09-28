@@ -127,15 +127,16 @@ export default function ScanCareCircleScreen() {
             </View>
           </View>
         ) : (
-          <CameraView
-            style={StyleSheet.absoluteFill}
-            facing="back"
-            enableTorch={torch}
-            barcodeScannerSettings={{
-              barcodeTypes: ['qr'],
-            }}
-            onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
-          >
+          <>
+            <CameraView
+              style={StyleSheet.absoluteFill}
+              facing="back"
+              enableTorch={torch}
+              barcodeScannerSettings={{
+                barcodeTypes: ['qr'],
+              }}
+              onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+            />
             {/* Overlay Viewfinder Target */}
             <View style={styles.overlay}>
               <View style={styles.targetFrame}>
@@ -165,7 +166,7 @@ export default function ScanCareCircleScreen() {
                 <Text style={styles.testOverlayBtnText}>Test QR Join</Text>
               </TouchableOpacity>
             </View>
-          </CameraView>
+          </>
         )}
       </View>
 

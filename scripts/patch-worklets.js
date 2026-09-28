@@ -24,3 +24,27 @@ if (fs.existsSync(pluginPath)) {
     console.log('[patch-worklets] react-native-worklets Babel plugin is already patched or up-to-date.');
   }
 }
+
+// 2. Patch expo-router useScreens.js fromImport undefined check
+const useScreensPath = path.resolve(__dirname, '../node_modules/expo-router/build/useScreens.js');
+
+if (fs.existsSync(useScreensPath)) {
+  let content = fs.readFileSync(useScreensPath, 'utf8');
+  const targetFn = 'function fromImport(value, { ErrorBoundary, SuspenseFallback, unstable_settings, ...component }) {';
+  const safeFn = [
+    'function fromImport(value, rawImport) {',
+    '    if (!rawImport) {',
+    '        console.error(`[Expo Router Error] Route "${value?.contextKey || value?.route}" is undefined or failed to export a module!`);',
+    '        return { default: EmptyRoute_1.EmptyRoute };',
+    '    }',
+    '    const { ErrorBoundary, SuspenseFallback, unstable_settings, ...component } = rawImport;'
+  ].join('\n');
+
+  if (content.includes(targetFn)) {
+    content = content.replace(targetFn, safeFn);
+    fs.writeFileSync(useScreensPath, content, 'utf8');
+    console.log('[patch-worklets] Successfully patched expo-router useScreens.js fromImport guard.');
+  } else {
+    console.log('[patch-worklets] expo-router useScreens.js is already patched or up-to-date.');
+  }
+}
