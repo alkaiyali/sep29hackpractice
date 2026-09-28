@@ -32,7 +32,7 @@ export type VibrationPattern = 'light' | 'medium' | 'heavy' | 'off';
 
 export interface ReminderSettings {
   soundEnabled: boolean;
-  soundName: AlertSound;
+  soundName: string; // bundled AlertSound key or `custom:<soundId>`
   vibrationEnabled: boolean;
   vibrationPattern: VibrationPattern;
   snoozeMinutes: number; // e.g. 5, 10, 15, 30

@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Switch, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ReminderSettings, AlertSound, VibrationPattern } from '../../types/medicine';
 import { ThemeColors } from '../../constants/colors';
 import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 import { audioHapticsService } from '../../services/audioHaptics';
+import { useSoundStore, customSoundRef } from '../../store/soundStore';
 
 interface AlarmSettingsViewProps {
   settings: ReminderSettings;
@@ -37,9 +38,45 @@ export const AlarmSettingsView: React.FC<AlarmSettingsViewProps> = ({
     onChange({ ...settings, soundEnabled: val });
   };
 
-  const setSound = (sound: AlertSound) => {
+  const customSounds = useSoundStore((s) => s.customSounds);
+  const importing = useSoundStore((s) => s.importing);
+  const importSound = useSoundStore((s) => s.importSound);
+  const previewStoreSound = useSoundStore((s) => s.previewSound);
+  const deleteSound = useSoundStore((s) => s.deleteSound);
+
+  const setSound = (sound: string) => {
     onChange({ ...settings, soundName: sound });
-    audioHapticsService.playAlarmSound(sound, true);
+    previewStoreSound(sound);
+  };
+
+  const handleImport = async () => {
+    try {
+      const sound = await importSound();
+      if (sound) {
+        onChange({ ...settings, soundName: customSoundRef(sound.id) });
+      }
+    } catch (err) {
+      Alert.alert(
+        'Import Failed',
+        err instanceof Error ? err.message : 'Could not import that audio file.'
+      );
+    }
+  };
+
+  const handleDeleteCustom = (id: string, name: string) => {
+    Alert.alert('Delete Sound?', `"${name}" will be removed. Medicines using it fall back to the default chime.`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          if (settings.soundName === customSoundRef(id)) {
+            onChange({ ...settings, soundName: 'default' });
+          }
+          await deleteSound(id);
+        },
+      },
+    ]);
   };
 
   const toggleVibration = (val: boolean) => {
@@ -101,7 +138,47 @@ export const AlarmSettingsView: React.FC<AlarmSettingsViewProps> = ({
                 </TouchableOpacity>
               );
             })}
+            {customSounds.map((s) => {
+              const ref = customSoundRef(s.id);
+              const isSelected = settings.soundName === ref;
+              return (
+                <TouchableOpacity
+                  key={s.id}
+                  style={[styles.chip, styles.customChip, isSelected && styles.selectedChip]}
+                  onPress={() => setSound(ref)}
+                  onLongPress={() => handleDeleteCustom(s.id, s.name)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name="musical-note"
+                    size={12}
+                    color={isSelected ? colors.onPrimary : colors.accent}
+                  />
+                  <Text style={[styles.chipText, isSelected && styles.selectedChipText]} numberOfLines={1}>
+                    {s.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+            <TouchableOpacity
+              style={[styles.chip, styles.importChip]}
+              onPress={handleImport}
+              disabled={importing}
+              activeOpacity={0.7}
+            >
+              {importing ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <>
+                  <Ionicons name="add" size={14} color={colors.primary} />
+                  <Text style={styles.importChipText}>Import audio</Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
+        )}
+        {settings.soundEnabled && customSounds.length > 0 && (
+          <Text style={styles.customHint}>Tap a custom sound to preview · long-press to delete</Text>
         )}
       </View>
 
@@ -264,6 +341,28 @@ const createStyles = (colors: ThemeColors) =>
   selectedChipText: {
     color: colors.onPrimary,
     fontWeight: '700',
+  },
+  customChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    maxWidth: 150,
+  },
+  importChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderStyle: 'dashed',
+  },
+  importChipText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  customHint: {
+    fontSize: 11,
+    color: colors.textMuted,
+    marginTop: 8,
   },
   selectedWarningText: {
     color: colors.warning,

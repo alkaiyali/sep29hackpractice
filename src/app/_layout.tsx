@@ -7,6 +7,7 @@ import { useCareCircleStore } from '../store/careCircleStore';
 import { useUserStore } from '../store/userStore';
 import { useActivityStore } from '../store/activityStore';
 import { useVitalsStore } from '../store/vitalsStore';
+import { useSoundStore } from '../store/soundStore';
 import { notificationService } from '../services/notifications';
 import { ThemeProvider, useTheme } from '../theme/ThemeProvider';
 
@@ -28,17 +29,18 @@ function RootNavigator() {
   const loadUser = useUserStore((s) => s.loadData);
   const loadActivity = useActivityStore((s) => s.loadData);
   const loadVitals = useVitalsStore((s) => s.loadData);
+  const loadSounds = useSoundStore((s) => s.loadData);
 
   useEffect(() => {
     // Rehydrate stores and register notification channels
     const initApp = async () => {
-      await Promise.all([loadMedicines(), loadCircles(), loadUser(), loadActivity(), loadVitals()]);
+      await Promise.all([loadMedicines(), loadCircles(), loadUser(), loadActivity(), loadVitals(), loadSounds()]);
       await notificationService.requestPermissions();
       await notificationService.registerNotificationCategories();
     };
 
     initApp();
-  }, [loadMedicines, loadCircles, loadUser, loadActivity, loadVitals]);
+  }, [loadMedicines, loadCircles, loadUser, loadActivity, loadVitals, loadSounds]);
 
   return (
     <>

@@ -114,8 +114,46 @@ export const audioHapticsService = {
     }
   },
 
-  async playAlarmSound(soundName: AlertSound, enabled: boolean): Promise<void> {
+  async playCustomFile(uri: string): Promise<void> {
+    try {
+      const { Audio } = await import('expo-av');
+      await Audio.setAudioModeAsync({
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+        shouldDuckAndroid: true,
+      });
+      const { sound } = await Audio.Sound.createAsync(
+        { uri },
+        { shouldPlay: true, volume: 1.0 }
+      );
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          sound.unloadAsync();
+        }
+      });
+    } catch (err) {
+      console.warn('[audioHapticsService] Custom file playback error:', err);
+    }
+  },
+
+  async playAlarmSound(soundName: string, enabled: boolean): Promise<void> {
     if (!enabled) return;
+
+    // User-imported sound? Play the file, falling back to the default chime.
+    if (soundName.startsWith('custom:')) {
+      try {
+        const { useSoundStore } = await import('../store/soundStore');
+        const uri = useSoundStore.getState().resolveUri(soundName);
+        if (uri) {
+          await audioHapticsService.playCustomFile(uri);
+          return;
+        }
+        console.warn('[audioHapticsService] Custom sound missing, using default chime.');
+      } catch (err) {
+        console.warn('[audioHapticsService] Custom sound lookup error:', err);
+      }
+      soundName = 'default';
+    }
 
     // Frequencies corresponding to sound choices (Web Audio synth path)
     let frequency = 587.33; // D5 (default)
@@ -172,7 +210,8 @@ export const audioHapticsService = {
         shouldDuckAndroid: true,
       });
 
-      let source: { uri: string } | number = BUNDLED_SOUNDS[soundName];
+      let source: { uri: string } | number =
+        BUNDLED_SOUNDS[soundName as AlertSound] ?? BUNDLED_SOUNDS.default;
       try {
         const { sound } = await Audio.Sound.createAsync(source, {
           shouldPlay: true,
