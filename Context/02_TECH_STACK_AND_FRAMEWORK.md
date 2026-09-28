@@ -65,7 +65,10 @@
     "@react-native-async-storage/async-storage": "^3.1.1",
     "@expo/vector-icons": "^15.0.3",
     "expo-constants": "~18.0.13",
-    "expo-linking": "~8.0.12"
+    "expo-linking": "~8.0.12",
+    "react-dom": "19.1.0",
+    "react-native-web": "^0.21.0",
+    "@expo/metro-runtime": "~6.1.2"
   }
 }
 ```
