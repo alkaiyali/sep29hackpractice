@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useMedicineStore } from '../../store/medicineStore';
 import { DEFAULT_REFILL_THRESHOLD } from '../../store/medicineStore';
@@ -63,15 +63,31 @@ export default function AddMedicineScreen() {
   const addMedicine = useMedicineStore((s) => s.addMedicine);
   const existingMedicines = useMedicineStore((s) => s.medicines);
   const activeCircle = useCareCircleStore((s) => s.getActiveCircle());
+  const scanned = useLocalSearchParams<{
+    scannedName?: string;
+    scannedDosage?: string;
+    scannedUnit?: string;
+    scannedInstruction?: string;
+    scannedPhoto?: string;
+  }>();
+
+  const initialUnit: DosageUnit = DOSAGE_UNITS.includes(scanned.scannedUnit as DosageUnit)
+    ? (scanned.scannedUnit as DosageUnit)
+    : 'mg';
+  const initialInstruction: MedicineInstruction = INSTRUCTIONS.some(
+    (i) => i.key === scanned.scannedInstruction
+  )
+    ? (scanned.scannedInstruction as MedicineInstruction)
+    : 'after_meal';
 
   // Form States
-  const [name, setName] = useState('');
-  const [dosage, setDosage] = useState('500');
-  const [dosageUnit, setDosageUnit] = useState<DosageUnit>('mg');
+  const [name, setName] = useState(scanned.scannedName || '');
+  const [dosage, setDosage] = useState(scanned.scannedDosage || '500');
+  const [dosageUnit, setDosageUnit] = useState<DosageUnit>(initialUnit);
   const [form, setForm] = useState<MedicineForm>('pill');
-  const [instruction, setInstruction] = useState<MedicineInstruction>('after_meal');
+  const [instruction, setInstruction] = useState<MedicineInstruction>(initialInstruction);
   const [notes, setNotes] = useState('');
-  const [photoUri, setPhotoUri] = useState<string | undefined>(undefined);
+  const [photoUri, setPhotoUri] = useState<string | undefined>(scanned.scannedPhoto || undefined);
   const [selectedTimes, setSelectedTimes] = useState<string[]>(['08:00']);
   const [customTimeInput, setCustomTimeInput] = useState('');
   const [forMemberId, setForMemberId] = useState<string>('user_self');
@@ -213,6 +229,20 @@ export default function AddMedicineScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Scan shortcut */}
+        <TouchableOpacity
+          style={styles.scanShortcut}
+          onPress={() => router.push('/medicine/scan-label')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="scan-outline" size={20} color={colors.primary} />
+          <View style={styles.scanShortcutTextCol}>
+            <Text style={styles.scanShortcutTitle}>Scan prescription label</Text>
+            <Text style={styles.scanShortcutSub}>Auto-fill name, strength & directions</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.primary} />
+        </TouchableOpacity>
+
         {/* Recipient Selection */}
         <View style={styles.formGroup}>
           <Text style={styles.groupLabel}>Who is this medicine for?</Text>
@@ -541,6 +571,29 @@ const createStyles = (colors: ThemeColors) =>
     padding: 20,
     paddingBottom: 60,
     gap: 20,
+  },
+  scanShortcut: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.primarySoft,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  scanShortcutTextCol: {
+    flex: 1,
+  },
+  scanShortcutTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: colors.primaryDark,
+  },
+  scanShortcutSub: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 1,
   },
   formGroup: {
     gap: 8,

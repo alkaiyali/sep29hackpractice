@@ -58,6 +58,13 @@ function RootNavigator() {
           }}
         />
         <Stack.Screen
+          name="medicine/scan-label"
+          options={{
+            presentation: 'modal',
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
           name="care-circle/scan"
           options={{
             presentation: 'fullScreenModal',
