@@ -7,7 +7,7 @@
 | **Framework** | React Native + Expo | SDK 57 (React 19.2.3, RN 0.86.3) | Latest production-ready Expo release with full React 19 support and unified hardware APIs. |
 | **Language** | TypeScript | ~6.0.3 (Strict Mode) | Type safety for medical dosage, schedule timestamps, and member permissions. |
 | **Navigation** | Expo Router | File-based routing (~57.0.23) | Deep linking support, clean tab navigation (`(tabs)`), and intuitive modal presentations. |
-| **UI Architecture** | Design Tokens + NativeWind / StyleSheet | Mobile-first Design System | High-contrast WCAG AA compliant palette (Medical Teal `#0D9488`, Calm Slate `#0F172A`, Clean Emerald `#059669`). Strict exclusion of arbitrary purple/violet. |
+| **UI Architecture** | Design Tokens + NativeWind / StyleSheet | Mobile-first Design System | Light clinical paper theme + true-AMOLED dark theme (pure-black canvas, neon teal `#2DD4BF`). Strict exclusion of arbitrary purple/violet. |
 
 ---
 
@@ -39,6 +39,8 @@
   - `useUserStore`: User profile details, alarm preferences, and notification status.
 - **Persistence**: Rehydrates automatically via `@react-native-async-storage/async-storage` ensuring complete offline capability.
 - **Theme Preference**: `ThemeProvider` (`src/theme/ThemeProvider.tsx`) persists `system | light | dark` in AsyncStorage and serves WCAG-compliant palettes into every screen.
+- **Dark = true AMOLED**: `Colors.dark` uses a pure-black `#000000` background, near-black surfaces (`#0C0C0E`), and a neon teal primary (`#2DD4BF`) with dark `onPrimary` (`#03211D`) text on fills. Shadows are replaced by 1px borders; the tab bar sits on pure black. The QR scanner uses fixed pure-black camera chrome in both modes.
+- **Signature elements**: deep-pine adherence hero panel (`hero` tokens), status-rail dose cards, pill date badge + avatar monogram header, glowing neon FABs.
 
 ### F. Inventory & Refill Alerts (offline)
 - Optional `inventoryCount`, `refillThreshold`, and `pharmacyPhone` per medicine.

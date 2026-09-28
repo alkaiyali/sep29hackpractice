@@ -51,7 +51,7 @@ export const MedicineFormPicker: React.FC<MedicineFormPickerProps> = ({
               <Ionicons
                 name={item.icon}
                 size={22}
-                color={isSelected ? '#FFFFFF' : colors.primary}
+                color={isSelected ? colors.onPrimary : colors.primary}
               />
             </View>
             <Text style={[styles.itemLabel, isSelected && styles.selectedItemLabel]}>
@@ -89,7 +89,7 @@ const createStyles = (colors: ThemeColors) =>
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,

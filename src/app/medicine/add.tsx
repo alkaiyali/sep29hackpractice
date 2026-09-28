@@ -190,7 +190,7 @@ export default function AddMedicineScreen() {
               <Ionicons
                 name="person"
                 size={14}
-                color={forMemberId === 'user_self' ? '#FFFFFF' : colors.primary}
+                color={forMemberId === 'user_self' ? colors.onPrimary : colors.primary}
               />
               <Text
                 style={[
@@ -215,7 +215,7 @@ export default function AddMedicineScreen() {
                     <Ionicons
                       name="people"
                       size={14}
-                      color={isSelected ? '#FFFFFF' : member.avatarColor}
+                      color={isSelected ? colors.onPrimary : member.avatarColor}
                     />
                     <Text
                       style={[styles.memberChipText, isSelected && styles.memberChipTextSelected]}
@@ -389,7 +389,7 @@ export default function AddMedicineScreen() {
                     <Ionicons
                       name="time-outline"
                       size={14}
-                      color={isSelected ? '#FFFFFF' : colors.primary}
+                      color={isSelected ? colors.onPrimary : colors.primary}
                     />
                     <Text
                       style={[
@@ -414,7 +414,7 @@ export default function AddMedicineScreen() {
                 onChangeText={setCustomTimeInput}
               />
               <TouchableOpacity style={styles.addTimeBtn} onPress={addCustomTime}>
-                <Ionicons name="add" size={20} color="#FFFFFF" />
+                <Ionicons name="add" size={20} color={colors.onPrimary} />
                 <Text style={styles.addTimeBtnText}>Add</Text>
               </TouchableOpacity>
             </View>
@@ -472,7 +472,7 @@ const createStyles = (colors: ThemeColors) =>
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: colors.surfaceBorder,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   closeBtn: {
     padding: 4,
@@ -559,7 +559,7 @@ const createStyles = (colors: ThemeColors) =>
     color: colors.textSecondary,
   },
   memberChipTextSelected: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
   },
   dosageRow: {
     gap: 10,
@@ -615,7 +615,7 @@ const createStyles = (colors: ThemeColors) =>
     color: colors.textSecondary,
   },
   instructionChipTextSelected: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
   },
   timesContainer: {
     gap: 10,
@@ -646,7 +646,7 @@ const createStyles = (colors: ThemeColors) =>
     color: colors.textSecondary,
   },
   timeChipTextSelected: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
   },
   customTimeRow: {
     flexDirection: 'row',
@@ -664,7 +664,7 @@ const createStyles = (colors: ThemeColors) =>
     gap: 4,
   },
   addTimeBtnText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontWeight: '700',
     fontSize: 14,
   },

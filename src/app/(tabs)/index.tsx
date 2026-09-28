@@ -86,11 +86,20 @@ export default function DashboardScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       {/* Top Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.dateLabel}>{todayFormatted}</Text>
-          <Text style={styles.greetingTitle}>
-            {user.name ? `Hello, ${user.name.split(' ')[0]} 👋` : 'Welcome to Meddy 👋'}
-          </Text>
+        <View style={styles.identityRow}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {user.name ? user.name.charAt(0).toUpperCase() : 'M'}
+            </Text>
+          </View>
+          <View>
+            <View style={styles.datePill}>
+              <Text style={styles.dateLabel}>{todayFormatted}</Text>
+            </View>
+            <Text style={styles.greetingTitle}>
+              {user.name ? `Hello, ${user.name.split(' ')[0]}` : 'Welcome to Meddy'}
+            </Text>
+          </View>
         </View>
         <TouchableOpacity
           style={styles.notificationBell}
@@ -177,7 +186,7 @@ export default function DashboardScreen() {
               style={styles.emptyAddBtn}
               onPress={() => router.push('/medicine/add')}
             >
-              <Ionicons name="add" size={18} color="#FFFFFF" />
+              <Ionicons name="add" size={18} color={colors.onPrimary} />
               <Text style={styles.emptyAddBtnText}>Add a Medicine</Text>
             </TouchableOpacity>
           </View>
@@ -210,7 +219,7 @@ export default function DashboardScreen() {
         activeOpacity={0.85}
         onPress={() => router.push('/medicine/add')}
       >
-        <Ionicons name="add" size={28} color="#FFFFFF" />
+        <Ionicons name="add" size={28} color={colors.onPrimary} />
       </TouchableOpacity>
     </View>
   );
@@ -229,24 +238,52 @@ const createStyles = (colors: ThemeColors) =>
     paddingHorizontal: 20,
     paddingVertical: 14,
   },
+  identityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.surfaceBorder,
+  },
+  avatarText: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: colors.onPrimary,
+  },
+  datePill: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.primarySoft,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    marginBottom: 4,
+  },
   dateLabel: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '800',
     color: colors.primaryDark,
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 0.9,
   },
   greetingTitle: {
-    fontSize: 26,
-    fontWeight: '800',
+    fontSize: 24,
+    fontWeight: '900',
     color: colors.textPrimary,
-    letterSpacing: -0.5,
-    marginTop: 2,
+    letterSpacing: -0.6,
   },
   notificationBell: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
@@ -279,10 +316,10 @@ const createStyles = (colors: ThemeColors) =>
     gap: 10,
   },
   lowSupplyIconBg: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    backgroundColor: '#FFFFFF',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -310,9 +347,10 @@ const createStyles = (colors: ThemeColors) =>
     flex: 1,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 19,
+    fontWeight: '800',
     color: colors.textPrimary,
+    letterSpacing: -0.3,
   },
   sectionSubtitle: {
     fontSize: 13,
@@ -323,24 +361,28 @@ const createStyles = (colors: ThemeColors) =>
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
-    paddingVertical: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    backgroundColor: colors.primarySoft,
   },
   seeAllText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: colors.primary,
+    fontWeight: '700',
+    color: colors.primaryDark,
   },
   doseList: {
     paddingHorizontal: 20,
   },
   emptyCard: {
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 26,
     padding: 28,
     marginHorizontal: 20,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
+    borderStyle: 'dashed',
   },
   emptyTitle: {
     fontSize: 17,
@@ -360,29 +402,29 @@ const createStyles = (colors: ThemeColors) =>
     alignItems: 'center',
     gap: 6,
     backgroundColor: colors.primary,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 999,
     marginTop: 16,
   },
   emptyAddBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: colors.onPrimary,
+    fontWeight: '800',
     fontSize: 14,
   },
   fab: {
     position: 'absolute',
     right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.primaryDark,
+    shadowColor: colors.glow,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
+    shadowOpacity: 1,
+    shadowRadius: 14,
     elevation: 6,
     zIndex: 99,
   },

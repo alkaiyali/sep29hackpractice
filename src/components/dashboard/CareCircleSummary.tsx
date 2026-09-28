@@ -26,7 +26,7 @@ export const CareCircleSummary: React.FC<CareCircleSummaryProps> = ({
           <Text style={styles.emptySub}>Create or scan a QR code to monitor loved ones.</Text>
         </View>
         <TouchableOpacity style={styles.joinBtn} onPress={onPressQR}>
-          <Ionicons name="qr-code-outline" size={16} color="#FFFFFF" />
+          <Ionicons name="qr-code-outline" size={16} color={colors.onPrimary} />
           <Text style={styles.joinBtnText}>Scan QR</Text>
         </TouchableOpacity>
       </View>
@@ -122,8 +122,8 @@ const createStyles = (colors: ThemeColors) =>
     gap: 6,
   },
   joinBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: colors.onPrimary,
+    fontWeight: '700',
     fontSize: 13,
   },
   headerRow: {

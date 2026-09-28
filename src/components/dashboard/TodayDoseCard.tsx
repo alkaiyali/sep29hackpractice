@@ -68,6 +68,17 @@ export const TodayDoseCard: React.FC<TodayDoseCardProps> = ({
 
   const isCompleted = status === 'taken' || status === 'skipped';
 
+  const railColor =
+    status === 'taken'
+      ? colors.success
+      : status === 'missed'
+      ? colors.danger
+      : status === 'snoozed'
+      ? colors.warning
+      : status === 'skipped'
+      ? colors.textMuted
+      : colors.primary;
+
   return (
     <TouchableOpacity
       activeOpacity={0.8}
@@ -78,6 +89,7 @@ export const TodayDoseCard: React.FC<TodayDoseCardProps> = ({
         isMissed && styles.missedCard,
       ]}
     >
+      <View style={[styles.rail, { backgroundColor: railColor }]} />
       <View style={styles.headerRow}>
         <View style={styles.timeBadgeContainer}>
           <Ionicons name="time-outline" size={14} color={colors.primaryDark} />
@@ -125,7 +137,7 @@ export const TodayDoseCard: React.FC<TodayDoseCardProps> = ({
             onPress={onTake}
             activeOpacity={0.7}
           >
-            <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
+            <Ionicons name="checkmark-circle" size={18} color={colors.onPrimary} />
             <Text style={styles.takeBtnText}>Take</Text>
           </TouchableOpacity>
 
@@ -167,25 +179,33 @@ const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 18,
+    borderRadius: 22,
     padding: 16,
+    paddingLeft: 20,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
-    shadowColor: colors.textPrimary,
+    shadowColor: colors.cardShadow,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 1,
     shadowRadius: 8,
     elevation: 2,
+    overflow: 'hidden',
+  },
+  rail: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
   },
   completedCard: {
-    backgroundColor: '#FAFDFB',
-    borderColor: '#E6F4EA',
-    opacity: 0.9,
+    backgroundColor: colors.surfaceSubtle,
+    opacity: 0.75,
   },
   missedCard: {
     borderColor: colors.danger,
-    backgroundColor: '#FFF8FA',
+    backgroundColor: colors.dangerLight,
   },
   headerRow: {
     flexDirection: 'row',
@@ -198,8 +218,8 @@ const createStyles = (colors: ThemeColors) =>
     alignItems: 'center',
     backgroundColor: colors.primarySoft,
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingVertical: 5,
+    borderRadius: 999,
     gap: 5,
   },
   timeText: {
@@ -232,17 +252,19 @@ const createStyles = (colors: ThemeColors) =>
     gap: 14,
   },
   iconCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
+    width: 56,
+    height: 56,
+    borderRadius: 18,
     backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
   },
   medicinePhoto: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
+    width: 56,
+    height: 56,
+    borderRadius: 18,
     backgroundColor: colors.surfaceSubtle,
   },
   detailsCol: {
@@ -281,8 +303,8 @@ const createStyles = (colors: ThemeColors) =>
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
-    paddingVertical: 8,
+    borderRadius: 14,
+    paddingVertical: 10,
     paddingHorizontal: 12,
   },
   takeBtn: {
@@ -291,8 +313,8 @@ const createStyles = (colors: ThemeColors) =>
     gap: 6,
   },
   takeBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: colors.onPrimary,
+    fontWeight: '800',
     fontSize: 14,
   },
   snoozeBtn: {
@@ -321,7 +343,7 @@ const createStyles = (colors: ThemeColors) =>
     marginTop: 10,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#EEF2F6',
+    borderTopColor: colors.surfaceBorder,
   },
   completedFooterText: {
     fontSize: 12,

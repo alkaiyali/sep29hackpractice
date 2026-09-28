@@ -141,7 +141,7 @@ export default function ScanCareCircleScreen() {
           <TextInput
             style={styles.manualInput}
             placeholder="e.g. MEDDY-4821-A"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor="#8E8E96"
             autoCapitalize="characters"
             value={manualCode}
             onChangeText={setManualCode}
@@ -158,7 +158,7 @@ export default function ScanCareCircleScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#0B1120',
+    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',
@@ -197,20 +197,20 @@ const styles = StyleSheet.create({
   },
   permSub: {
     fontSize: 13,
-    color: '#94A3B8',
+    color: '#8E8E96',
     textAlign: 'center',
     lineHeight: 18,
   },
   grantBtn: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: '#2DD4BF',
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 14,
     marginTop: 8,
   },
   grantBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: '#03211D',
+    fontWeight: '800',
     fontSize: 14,
   },
   overlay: {
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 32,
     height: 32,
-    borderColor: '#14B8A6',
+    borderColor: '#2DD4BF',
   },
   tl: {
     top: 0,
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
   },
   fallbackContainer: {
-    backgroundColor: '#111827',
+    backgroundColor: '#0E0E11',
     paddingHorizontal: 20,
     paddingTop: 18,
     borderTopLeftRadius: 24,
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   fallbackTitle: {
-    color: '#E2E8F0',
+    color: '#EDEDEF',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   },
   manualInput: {
     flex: 1,
-    backgroundColor: '#1F2937',
+    backgroundColor: '#17171C',
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -294,18 +294,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     borderWidth: 1,
-    borderColor: '#374151',
+    borderColor: '#26262C',
   },
   joinCodeBtn: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: '#2DD4BF',
     paddingHorizontal: 20,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   joinCodeBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: '#03211D',
+    fontWeight: '800',
     fontSize: 14,
   },
 });

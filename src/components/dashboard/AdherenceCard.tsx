@@ -17,56 +17,54 @@ export const AdherenceCard: React.FC<AdherenceCardProps> = ({ summary, streakDay
   const { taken, totalDue, percentage, missed } = summary;
 
   return (
-    <View style={styles.container}>
+    <View style={styles.hero}>
       <View style={styles.topRow}>
         <View style={styles.leftCol}>
-          <Text style={styles.label}>Today's Adherence</Text>
+          <View style={styles.labelRow}>
+            <Ionicons name="pulse" size={13} color={colors.heroSub} />
+            <Text style={styles.label}>Today's Adherence</Text>
+          </View>
           <Text style={styles.percentageText}>{percentage}%</Text>
           <Text style={styles.fractionText}>
-            {taken} of {totalDue} {totalDue === 1 ? 'dose' : 'doses'} completed
+            {taken} of {totalDue} {totalDue === 1 ? 'dose' : 'doses'} · {missed > 0 ? `${missed} missed` : 'on track'}
           </Text>
-          {missed > 0 && (
-            <Text style={styles.missedText}>⚠ {missed} missed</Text>
-          )}
         </View>
 
-        <View style={styles.streakBadge}>
-          <Ionicons name="flame" size={24} color="#F59E0B" />
-          <View>
-            <Text style={styles.streakNum}>{streakDays} Days</Text>
-            <Text style={styles.streakLabel}>Streak</Text>
-          </View>
+        <View style={styles.streakPill}>
+          <Ionicons name="flame" size={18} color="#FBBF24" />
+          <Text style={styles.streakNum}>{streakDays}</Text>
+          <Text style={styles.streakLabel}>day streak</Text>
         </View>
       </View>
 
-      {/* Progress Bar */}
-      <View style={styles.progressBarTrack}>
-        <View style={[styles.progressBarFill, { width: `${Math.min(percentage, 100)}%` }]} />
+      {/* Progress track */}
+      <View style={styles.progressTrack}>
+        <View style={[styles.progressFill, { width: `${Math.min(percentage, 100)}%` }]} />
       </View>
 
       {/* Motivational message */}
       <View style={styles.messageRow}>
         <Ionicons
-          name={percentage === 100 ? 'sparkles' : 'shield-checkmark-outline'}
-          size={16}
-          color={colors.primary}
+          name={percentage === 100 ? 'sparkles' : missed > 0 ? 'warning-outline' : 'shield-checkmark-outline'}
+          size={15}
+          color={colors.heroSub}
         />
-        <Text style={styles.messageText}>
+        <Text style={styles.messageText} numberOfLines={2}>
           {percentage === 100
-            ? 'Awesome job! All doses taken today.'
+            ? 'Perfect day — every dose taken.'
             : missed > 0
-            ? `${missed} ${missed === 1 ? 'dose' : 'doses'} missed — review your history.`
+            ? `${missed} ${missed === 1 ? 'dose' : 'doses'} missed — tap history to review.`
             : percentage > 50
-            ? 'Great momentum! You are on track for today.'
-            : 'Keep it up! Your health is your best investment.'}
+            ? 'Great momentum — finish strong today.'
+            : 'Small steps count. Take your next dose.'}
         </Text>
       </View>
 
       {onPressHistory && (
         <TouchableOpacity style={styles.historyBtn} onPress={onPressHistory} activeOpacity={0.7}>
-          <Ionicons name="calendar-outline" size={15} color={colors.primary} />
-          <Text style={styles.historyBtnText}>View History & Calendar</Text>
-          <Ionicons name="chevron-forward" size={14} color={colors.primary} />
+          <Ionicons name="calendar-outline" size={15} color={colors.heroText} />
+          <Text style={styles.historyBtnText}>History & Calendar</Text>
+          <Ionicons name="chevron-forward" size={14} color={colors.heroText} />
         </TouchableOpacity>
       )}
     </View>
@@ -75,79 +73,85 @@ export const AdherenceCard: React.FC<AdherenceCardProps> = ({ summary, streakDay
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
-  container: {
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    padding: 18,
+  hero: {
+    backgroundColor: colors.hero,
+    borderRadius: 26,
+    padding: 20,
     marginHorizontal: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: colors.surfaceBorder,
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
+    borderColor: colors.heroBorder,
+    shadowColor: colors.glow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 4,
   },
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 14,
+    marginBottom: 16,
   },
   leftCol: {
     flex: 1,
   },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.heroSub,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1.1,
   },
   percentageText: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: colors.primaryDark,
-    letterSpacing: -0.5,
-    marginVertical: 2,
+    fontSize: 46,
+    fontWeight: '900',
+    color: colors.heroText,
+    letterSpacing: -1.5,
+    marginTop: 4,
+    lineHeight: 50,
   },
   fractionText: {
     fontSize: 13,
-    color: colors.textSecondary,
-    fontWeight: '500',
+    color: colors.heroSub,
+    fontWeight: '600',
+    marginTop: 2,
   },
-  streakBadge: {
+  streakPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.warningLight,
+    backgroundColor: colors.heroTrack,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 14,
-    gap: 8,
+    borderRadius: 999,
+    gap: 5,
   },
   streakNum: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#92400E',
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.heroText,
   },
   streakLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#B45309',
-    textTransform: 'uppercase',
+    color: colors.heroSub,
   },
-  progressBarTrack: {
+  progressTrack: {
     height: 10,
-    backgroundColor: colors.surfaceSubtle,
-    borderRadius: 5,
+    backgroundColor: colors.heroTrack,
+    borderRadius: 999,
     overflow: 'hidden',
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  progressBarFill: {
+  progressFill: {
     height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 5,
+    backgroundColor: colors.heroFill,
+    borderRadius: 999,
   },
   messageRow: {
     flexDirection: 'row',
@@ -155,29 +159,26 @@ const createStyles = (colors: ThemeColors) =>
     gap: 8,
   },
   messageText: {
+    flex: 1,
     fontSize: 13,
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-  missedText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.danger,
-    marginTop: 4,
+    fontWeight: '600',
+    color: colors.heroSub,
+    lineHeight: 18,
   },
   historyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    marginTop: 14,
-    paddingTop: 12,
+    marginTop: 16,
+    paddingTop: 14,
     borderTopWidth: 1,
-    borderTopColor: colors.surfaceBorder,
+    borderTopColor: colors.heroTrack,
   },
   historyBtnText: {
     fontSize: 13,
-    fontWeight: '700',
-    color: colors.primary,
+    fontWeight: '800',
+    color: colors.heroText,
+    letterSpacing: 0.2,
   },
 });

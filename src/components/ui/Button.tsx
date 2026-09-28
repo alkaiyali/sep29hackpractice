@@ -123,7 +123,7 @@ export const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'outline' || variant === 'ghost' ? colors.primary : '#FFFFFF'}
+          color={variant === 'outline' || variant === 'ghost' ? colors.primary : colors.onPrimary}
         />
       ) : (
         <>
@@ -193,7 +193,7 @@ const createStyles = (colors: ThemeColors) =>
     fontSize: 17,
   },
   textPrimary: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
   },
   textSecondary: {
     color: colors.primaryDark,
@@ -202,6 +202,6 @@ const createStyles = (colors: ThemeColors) =>
     color: colors.primary,
   },
   textDanger: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
   },
 });

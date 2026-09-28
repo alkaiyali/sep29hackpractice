@@ -213,7 +213,7 @@ const createStyles = (colors: ThemeColors) =>
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -240,7 +240,7 @@ const createStyles = (colors: ThemeColors) =>
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
   },
@@ -262,7 +262,7 @@ const createStyles = (colors: ThemeColors) =>
     color: colors.textSecondary,
   },
   selectedChipText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontWeight: '700',
   },
   selectedWarningText: {

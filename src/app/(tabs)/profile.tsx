@@ -197,7 +197,7 @@ export default function ProfileScreen() {
             disabled={testingAlarm}
             activeOpacity={0.8}
           >
-            <Ionicons name="volume-high-outline" size={18} color="#FFFFFF" />
+            <Ionicons name="volume-high-outline" size={18} color={colors.onPrimary} />
             <Text style={styles.testAlarmBtnText}>
               {testingAlarm ? 'Firing Alarm...' : 'Test Alarm Sound & Vibration'}
             </Text>
@@ -231,7 +231,7 @@ export default function ProfileScreen() {
                   <Ionicons
                     name={option.icon}
                     size={16}
-                    color={isActive ? '#FFFFFF' : colors.textSecondary}
+                    color={isActive ? colors.onPrimary : colors.textSecondary}
                   />
                   <Text style={[styles.themeChipText, isActive && styles.themeChipTextActive]}>
                     {option.label}
@@ -263,7 +263,7 @@ export default function ProfileScreen() {
             disabled={exporting}
             activeOpacity={0.8}
           >
-            <Ionicons name="share-outline" size={18} color="#FFFFFF" />
+            <Ionicons name="share-outline" size={18} color={colors.onPrimary} />
             <Text style={styles.exportBtnText}>
               {exporting ? 'Generating Report…' : 'Export Adherence PDF'}
             </Text>
@@ -358,7 +358,7 @@ const createStyles = (colors: ThemeColors) =>
     padding: 18,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
-    shadowColor: colors.textPrimary,
+    shadowColor: colors.cardShadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -376,7 +376,7 @@ const createStyles = (colors: ThemeColors) =>
   avatarInitial: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: colors.onPrimary,
   },
   userInfo: {
     flex: 1,
@@ -506,7 +506,7 @@ const createStyles = (colors: ThemeColors) =>
     marginTop: 4,
   },
   testAlarmBtnText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -536,7 +536,7 @@ const createStyles = (colors: ThemeColors) =>
     color: colors.textSecondary,
   },
   themeChipTextActive: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
   },
   themeHint: {
     fontSize: 12,
@@ -559,7 +559,7 @@ const createStyles = (colors: ThemeColors) =>
     marginTop: 4,
   },
   exportBtnText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -593,7 +593,7 @@ const createStyles = (colors: ThemeColors) =>
     padding: 20,
   },
   modalBox: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 20,
     gap: 10,
@@ -641,7 +641,7 @@ const createStyles = (colors: ThemeColors) =>
     borderRadius: 12,
   },
   modalConfirmText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontWeight: '700',
   },
 });

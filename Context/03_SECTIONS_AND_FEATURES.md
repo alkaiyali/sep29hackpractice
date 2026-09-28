@@ -12,11 +12,12 @@ The Dashboard is the daily hub that gives users an immediate view of today's med
 1. **Header & Date Navigator**:
    - Greeting with active profile avatar.
    - Horizontal date strip (scrollable week view with today highlighted).
-2. **Adherence Status Card**:
-   - Circular or bar progress indicator (e.g., "3 of 4 taken today · 75%").
-   - Streak counter to encourage consistency.
+2. **Adherence Status Card (hero panel)**:
+   - Deep-pine hero card (tinted near-black in dark mode) with oversized adherence %, taken/missed fraction, and neon progress track.
+   - Flame streak pill and contextual message; links to History & Calendar.
 3. **Today's Medicine Timeline (Tracked Medicines)**:
-   - Grouped chronologically: **Morning**, **Afternoon**, **Evening**, **Night**.
+   - Cards carry a left status rail (green taken / red missed / amber snoozed / teal scheduled), time pill, member tag, and squircle form icon.
+   - Interactive quick action buttons: **[Take]** (high-contrast fill), **[Snooze]**, or **[Skip]**.
    - Each card displays:
      - Medicine Name, Dosage + Unit (e.g., *Amoxicillin 500mg*).
      - Medicine Form icon (Pill, Liquid, Inhaler, etc.).

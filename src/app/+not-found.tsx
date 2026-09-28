@@ -48,7 +48,7 @@ const createStyles = (colors: ThemeColors) =>
   },
   linkText: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontWeight: '700',
   },
 });

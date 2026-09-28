@@ -286,7 +286,7 @@ const createStyles = (colors: ThemeColors) =>
     },
     monthCard: {
       backgroundColor: colors.surface,
-      borderRadius: 20,
+      borderRadius: 26,
       padding: 16,
       borderWidth: 1,
       borderColor: colors.surfaceBorder,

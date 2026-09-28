@@ -21,7 +21,7 @@ const createStyles = (colors: ThemeColors) =>
       padding: 16,
       borderWidth: 1,
       borderColor: colors.surfaceBorder,
-      shadowColor: colors.textPrimary,
+      shadowColor: colors.cardShadow,
       shadowOffset: { width: 0, height: 3 },
       shadowOpacity: 0.05,
       shadowRadius: 10,

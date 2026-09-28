@@ -91,7 +91,7 @@ export default function CareCircleScreen() {
             onPress={() => router.push('/care-circle/scan')}
             activeOpacity={0.7}
           >
-            <Ionicons name="qr-code-outline" size={18} color="#FFFFFF" />
+            <Ionicons name="qr-code-outline" size={18} color={colors.onPrimary} />
             <Text style={styles.scanBtnText}>Scan QR</Text>
           </TouchableOpacity>
         }
@@ -144,7 +144,7 @@ export default function CareCircleScreen() {
                 style={styles.createFirstCircleBtn}
                 onPress={() => setShowCreateModal(true)}
               >
-                <Ionicons name="add-circle-outline" size={18} color="#FFFFFF" />
+                <Ionicons name="add-circle-outline" size={18} color={colors.onPrimary} />
                 <Text style={styles.createFirstCircleBtnText}>Create Care Circle</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -227,7 +227,7 @@ export default function CareCircleScreen() {
               style={styles.addMedBtn}
               onPress={() => router.push('/medicine/add')}
             >
-              <Ionicons name="add" size={16} color="#FFFFFF" />
+              <Ionicons name="add" size={16} color={colors.onPrimary} />
               <Text style={styles.addMedBtnText}>Add Medicine for Loved One</Text>
             </TouchableOpacity>
           </View>
@@ -374,7 +374,7 @@ const createStyles = (colors: ThemeColors) =>
     gap: 6,
   },
   scanBtnText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontWeight: '700',
     fontSize: 13,
   },
@@ -389,7 +389,7 @@ const createStyles = (colors: ThemeColors) =>
     padding: 20,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
-    shadowColor: colors.textPrimary,
+    shadowColor: colors.cardShadow,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -578,7 +578,7 @@ const createStyles = (colors: ThemeColors) =>
     marginTop: 8,
   },
   addMedBtnText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 13,
     fontWeight: '700',
   },
@@ -656,7 +656,7 @@ const createStyles = (colors: ThemeColors) =>
     padding: 20,
   },
   modalBox: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 20,
     padding: 20,
     gap: 12,
@@ -709,7 +709,7 @@ const createStyles = (colors: ThemeColors) =>
     color: colors.textSecondary,
   },
   relationChipTextActive: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
   },
   modalActions: {
     flexDirection: 'row',
@@ -732,7 +732,7 @@ const createStyles = (colors: ThemeColors) =>
     borderRadius: 12,
   },
   modalConfirmText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontWeight: '700',
   },
   emptyCircleOnboarding: {
@@ -743,7 +743,7 @@ const createStyles = (colors: ThemeColors) =>
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
     gap: 10,
-    shadowColor: colors.textPrimary,
+    shadowColor: colors.cardShadow,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -778,7 +778,7 @@ const createStyles = (colors: ThemeColors) =>
     borderRadius: 12,
   },
   createFirstCircleBtnText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontSize: 13,
     fontWeight: '700',
   },

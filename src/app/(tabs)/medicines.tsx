@@ -81,7 +81,7 @@ export default function MedicinesScreen() {
             onPress={() => router.push('/medicine/add')}
             activeOpacity={0.7}
           >
-            <Ionicons name="add" size={20} color="#FFFFFF" />
+            <Ionicons name="add" size={20} color={colors.onPrimary} />
             <Text style={styles.addHeaderBtnText}>Add</Text>
           </TouchableOpacity>
         }
@@ -226,7 +226,7 @@ export default function MedicinesScreen() {
         activeOpacity={0.85}
         onPress={() => router.push('/medicine/add')}
       >
-        <Ionicons name="add" size={28} color="#FFFFFF" />
+        <Ionicons name="add" size={28} color={colors.onPrimary} />
       </TouchableOpacity>
     </View>
   );
@@ -248,7 +248,7 @@ const createStyles = (colors: ThemeColors) =>
     gap: 4,
   },
   addHeaderBtnText: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
     fontWeight: '700',
     fontSize: 14,
   },
@@ -278,7 +278,7 @@ const createStyles = (colors: ThemeColors) =>
     color: colors.textSecondary,
   },
   filterChipTextActive: {
-    color: '#FFFFFF',
+    color: colors.onPrimary,
   },
   listContent: {
     paddingHorizontal: 20,
@@ -291,7 +291,7 @@ const createStyles = (colors: ThemeColors) =>
     padding: 16,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
-    shadowColor: colors.textPrimary,
+    shadowColor: colors.cardShadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -457,16 +457,16 @@ const createStyles = (colors: ThemeColors) =>
   fab: {
     position: 'absolute',
     right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.primaryDark,
+    shadowColor: colors.glow,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
+    shadowOpacity: 1,
+    shadowRadius: 14,
     elevation: 6,
   },
 });
