@@ -62,6 +62,19 @@ function push() {
     return;
   }
 
+  // The post-commit hook may already have pushed this exact commit.
+  const local = gitOut(['rev-parse', 'HEAD']);
+  let remote = '';
+  try {
+    remote = gitOut(['rev-parse', `origin/${branch}`]);
+  } catch {
+    remote = '';
+  }
+  if (remote && remote === local) {
+    console.log(`✔ origin/${branch} is already up to date`);
+    return;
+  }
+
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
       git(['pull', '--rebase', '--autostash', 'origin', branch], attempt > 1);
