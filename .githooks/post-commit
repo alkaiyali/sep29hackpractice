@@ -1,0 +1,14 @@
+#!/bin/sh
+# Meddy post-commit — push every completion.
+#
+# Delegates to scripts/ship.mjs so the push logic lives in exactly one place.
+# A failure NEVER undoes the commit: it warns loudly and is retryable.
+export GIT_TERMINAL_PROMPT=0
+
+node scripts/ship.mjs --push || {
+  echo "" >&2
+  echo "⚠ post-commit: push failed — your commit is safe locally." >&2
+  echo "  Retry with:  npm run ship:push" >&2
+  echo "" >&2
+}
+exit 0

@@ -1,0 +1,31 @@
+#!/bin/sh
+# Meddy pre-commit — never commit secrets, never commit a broken TypeScript tree.
+#
+# Bypass once with:  SKIP_VERIFY=1 git commit -m "..."
+set -e
+
+[ "$SKIP_VERIFY" = "1" ] && exit 0
+
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$staged" ] && exit 0
+
+# ── 1. secret guard ────────────────────────────────────────────────────────────
+# .env is gitignored, but `git add -f` and stray copies still slip through.
+secrets=$(printf '%s\n' "$staged" | grep -E '(^|/)(\.env(\.|$)|[^/]*\.(pem|p12|keystore|jks|mobileprovision)$)' || true)
+if [ -n "$secrets" ]; then
+  echo "✗ pre-commit: refusing to commit secrets:" >&2
+  printf '%s\n' "$secrets" | sed 's/^/    /' >&2
+  echo "    Keep them local (see .gitignore). Commit .env.example instead." >&2
+  exit 1
+fi
+
+# ── 2. typecheck, only when TypeScript changed ─────────────────────────────────
+if printf '%s\n' "$staged" | grep -qE '\.(ts|tsx)$'; then
+  echo "… pre-commit: npx tsc --noEmit"
+  if ! npx tsc --noEmit; then
+    echo "✗ pre-commit: TypeScript errors — fix them, or SKIP_VERIFY=1 to override once" >&2
+    exit 1
+  fi
+fi
+
+exit 0

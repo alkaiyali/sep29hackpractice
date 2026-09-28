@@ -8,6 +8,9 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "firebase:smoke": "node --env-file=.env scripts/firebase-smoke.mjs",
+    "ship": "node scripts/ship.mjs",
+    "ship:push": "node scripts/ship.mjs --push",
+    "prepare": "git config core.hooksPath .githooks || true",
     "postinstall": "node scripts/patch-worklets.js"
   },
   "dependencies": {
