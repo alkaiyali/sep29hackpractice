@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { TodayDoseItem } from '../../store/medicineStore';
 import { ThemeColors } from '../../constants/colors';
 import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
 import { Badge } from '../ui/Badge';
+import { getPrecautions } from '../../services/precautions';
 
 interface TodayDoseCardProps {
   item: TodayDoseItem;
@@ -27,6 +28,7 @@ export const TodayDoseCard: React.FC<TodayDoseCardProps> = ({
   const styles = useThemedStyles(createStyles);
   const { medicine, timeStr, status } = item;
   const isMissed = status === 'missed';
+  const precautions = getPrecautions(medicine.name).slice(0, 2);
 
   const getFormIconName = (form: string): keyof typeof Ionicons.glyphMap => {
     switch (form) {
@@ -128,6 +130,23 @@ export const TodayDoseCard: React.FC<TodayDoseCardProps> = ({
           </Text>
         </View>
       </View>
+
+      {precautions.length > 0 && (
+        <View style={styles.precautionRow}>
+          {precautions.map((p) => (
+            <TouchableOpacity
+              key={p.label}
+              style={styles.precautionChip}
+              onPress={() => Alert.alert(`${p.icon} ${p.label}`, p.detail)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.precautionText}>
+                {p.icon} {p.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       {/* Action buttons if not yet taken */}
       {!isCompleted ? (
@@ -289,6 +308,25 @@ const createStyles = (colors: ThemeColors) =>
     fontSize: 12,
     color: colors.textSecondary,
     textTransform: 'capitalize',
+  },
+  precautionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 10,
+  },
+  precautionChip: {
+    backgroundColor: colors.warningLight,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.warning,
+  },
+  precautionText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.warning,
   },
   actionsRow: {
     flexDirection: 'row',

@@ -15,6 +15,8 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useMedicineStore } from '../../store/medicineStore';
 import { DEFAULT_REFILL_THRESHOLD } from '../../store/medicineStore';
+import { getPrecautions } from '../../services/precautions';
+import { checkInteractions } from '../../services/interactions';
 import { useCareCircleStore } from '../../store/careCircleStore';
 import { ThemeColors } from '../../constants/colors';
 import { useTheme, useThemedStyles } from '../../theme/ThemeProvider';
@@ -59,6 +61,7 @@ export default function AddMedicineScreen() {
   const router = useRouter();
 
   const addMedicine = useMedicineStore((s) => s.addMedicine);
+  const existingMedicines = useMedicineStore((s) => s.medicines);
   const activeCircle = useCareCircleStore((s) => s.getActiveCircle());
 
   // Form States
@@ -87,6 +90,8 @@ export default function AddMedicineScreen() {
     vibrationPattern: 'medium',
     snoozeMinutes: 10,
   });
+
+  const namePrecautions = getPrecautions(name);
 
   const togglePresetTime = (time: string) => {
     if (selectedTimes.includes(time)) {
@@ -119,6 +124,35 @@ export default function AddMedicineScreen() {
       return;
     }
 
+    const numDosage = parseFloat(dosage);
+    if (isNaN(numDosage) || numDosage <= 0) {
+      Alert.alert('Invalid Dosage', 'Please enter a valid numeric dosage.');
+      return;
+    }
+
+    // Drug-drug interaction screen before saving
+    const conflicts = checkInteractions(
+      name.trim(),
+      existingMedicines.map((m) => m.name)
+    );
+    if (conflicts.length > 0) {
+      const majors = conflicts.filter((c) => c.severity === 'major');
+      Alert.alert(
+        majors.length > 0 ? '⛔ Major Interaction Risk' : '⚠️ Possible Interaction',
+        conflicts.map((c) => `• ${c.medicines.join(' + ')}: ${c.message}`).join('\n\n') +
+          '\n\nThis check is educational, not medical advice. Confirm with your doctor or pharmacist.',
+        [
+          { text: 'Review', style: 'cancel' },
+          { text: 'Save Anyway', style: majors.length > 0 ? 'destructive' : 'default', onPress: () => persist() },
+        ]
+      );
+      return;
+    }
+
+    await persist();
+  };
+
+  const persist = async () => {
     const numDosage = parseFloat(dosage);
     if (isNaN(numDosage) || numDosage <= 0) {
       Alert.alert('Invalid Dosage', 'Please enter a valid numeric dosage.');
@@ -238,6 +272,16 @@ export default function AddMedicineScreen() {
             value={name}
             onChangeText={setName}
           />
+          {namePrecautions.length > 0 && (
+            <View style={styles.cautionBox}>
+              <Text style={styles.cautionTitle}>Cautions for this medicine</Text>
+              {namePrecautions.map((p) => (
+                <Text key={p.label} style={styles.cautionLine}>
+                  {p.icon} <Text style={styles.cautionLabel}>{p.label}:</Text> {p.detail}
+                </Text>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* 2. Dosage & Unit */}
@@ -532,6 +576,30 @@ const createStyles = (colors: ThemeColors) =>
     fontSize: 11,
     color: colors.textMuted,
     fontWeight: '500',
+  },
+  cautionBox: {
+    backgroundColor: colors.warningLight,
+    borderRadius: 14,
+    padding: 12,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: colors.warning,
+  },
+  cautionTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.warning,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  cautionLine: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    lineHeight: 17,
+  },
+  cautionLabel: {
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
   memberPickerRow: {
     flexDirection: 'row',
