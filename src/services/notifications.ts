@@ -1,30 +1,79 @@
-import * as Notifications from 'expo-notifications';
+import type * as NotificationsNS from 'expo-notifications';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { Medicine } from '../types/medicine';
 
 export const NOTIFICATION_CATEGORY_ID = 'MEDICATION_ALARM';
 
-// Configure foreground presentation behavior
-if (Platform.OS !== 'web') {
+/**
+ * Notification support detection.
+ *
+ * Expo Go cannot run this app's alarms: `expo-notifications` dropped remote
+ * push in Expo Go (Android) at SDK 53 and prints a loud error banner the
+ * moment the module is loaded. We therefore keep the native module *unloaded*
+ * in Expo Go and no-op every call, so nothing errors there.
+ *
+ * Real builds — the APK, or a development build — get the full behaviour.
+ */
+export const isExpoGo =
+  Constants.expoGoConfig != null || String(Constants.appOwnership ?? '') === 'expo';
+
+export interface NotificationsAvailability {
+  supported: boolean;
+  reason?: string;
+}
+
+export function getNotificationsAvailability(): NotificationsAvailability {
+  if (Platform.OS === 'web') {
+    return { supported: false, reason: 'On web, Meddy shows a browser alert instead of a system notification.' };
+  }
+  if (isExpoGo) {
+    return {
+      supported: false,
+      reason: 'Expo Go cannot schedule medicine alarms. Install the Meddy APK (or a development build) for real reminders — sound and vibration still work here.',
+    };
+  }
+  return { supported: true };
+}
+
+type NotificationsModule = typeof NotificationsNS;
+
+let notificationsModule: NotificationsModule | null = null;
+let loadFailed = false;
+
+/** Loads expo-notifications on demand; returns null when unsupported. */
+async function loadNotifications(): Promise<NotificationsModule | null> {
+  if (!getNotificationsAvailability().supported || loadFailed) return null;
+  if (notificationsModule) return notificationsModule;
+
   try {
-    Notifications.setNotificationHandler({
+    const module = await import('expo-notifications');
+
+    // Configure foreground presentation once the module is actually loaded.
+    module.setNotificationHandler({
       handleNotification: async () => ({
         shouldShowAlert: true,
         shouldPlaySound: true,
         shouldSetBadge: true,
         shouldShowBanner: true,
         shouldShowList: true,
-        priority: Notifications.AndroidNotificationPriority.MAX,
+        priority: module.AndroidNotificationPriority.MAX,
       }),
     });
+
+    notificationsModule = module;
+    return module;
   } catch (err) {
-    console.warn('[notifications] Failed to set notification handler:', err);
+    loadFailed = true;
+    console.warn('[notifications] expo-notifications could not be loaded:', err);
+    return null;
   }
 }
 
 export const notificationService = {
   async registerNotificationCategories(): Promise<void> {
-    if (Platform.OS === 'web') return;
+    const Notifications = await loadNotifications();
+    if (!Notifications) return;
 
     try {
       await Notifications.setNotificationCategoryAsync(NOTIFICATION_CATEGORY_ID, [
@@ -49,7 +98,8 @@ export const notificationService = {
   },
 
   async requestPermissions(): Promise<boolean> {
-    if (Platform.OS === 'web') return true;
+    const Notifications = await loadNotifications();
+    if (!Notifications) return false;
 
     try {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -78,7 +128,8 @@ export const notificationService = {
   },
 
   async scheduleMedicineAlarms(medicine: Medicine): Promise<string[]> {
-    if (Platform.OS === 'web') return [];
+    const Notifications = await loadNotifications();
+    if (!Notifications) return [];
 
     const notificationIds: string[] = [];
 
@@ -132,7 +183,8 @@ export const notificationService = {
   },
 
   async scheduleSnoozeAlarm(medicine: Medicine, minutes: number = 10): Promise<string | null> {
-    if (Platform.OS === 'web') return null;
+    const Notifications = await loadNotifications();
+    if (!Notifications) return null;
 
     try {
       const id = await Notifications.scheduleNotificationAsync({
@@ -171,6 +223,9 @@ export const notificationService = {
       return;
     }
 
+    const Notifications = await loadNotifications();
+    if (!Notifications) return;
+
     try {
       await Notifications.scheduleNotificationAsync({
         content: {
@@ -197,10 +252,14 @@ export const notificationService = {
     }
   },
 
-  async notifyLowSupply(medicine: Medicine, remaining: number): Promise<void> {    if (Platform.OS === 'web') {
+  async notifyLowSupply(medicine: Medicine, remaining: number): Promise<void> {
+    if (Platform.OS === 'web') {
       alert(`Low supply: only ${remaining} left of ${medicine.name}. Time to request a refill.`);
       return;
     }
+
+    const Notifications = await loadNotifications();
+    if (!Notifications) return;
 
     try {
       await Notifications.scheduleNotificationAsync({
@@ -225,11 +284,17 @@ export const notificationService = {
     }
   },
 
-  async triggerTestAlarm(title: string = 'Meddy Test Reminder', body: string = '500mg Amoxicillin - Take with water'): Promise<void> {
+  async triggerTestAlarm(
+    title: string = 'Meddy Test Reminder',
+    body: string = '500mg Amoxicillin - Take with water'
+  ): Promise<void> {
     if (Platform.OS === 'web') {
       alert(`[Notification] ${title}: ${body}`);
       return;
     }
+
+    const Notifications = await loadNotifications();
+    if (!Notifications) return;
 
     try {
       await Notifications.scheduleNotificationAsync({
@@ -249,5 +314,19 @@ export const notificationService = {
     } catch (err) {
       console.warn('[notificationService] Error sending test alarm:', err);
     }
+  },
+
+  /**
+   * Subscribes to notification action taps (Take / Snooze in the shade).
+   * Resolves to a no-op unsubscribe when notifications are unavailable.
+   */
+  async addResponseListener(
+    handler: (response: NotificationsNS.NotificationResponse) => void
+  ): Promise<() => void> {
+    const Notifications = await loadNotifications();
+    if (!Notifications) return () => {};
+
+    const subscription = Notifications.addNotificationResponseReceivedListener(handler);
+    return () => subscription.remove();
   },
 };

@@ -41,6 +41,8 @@
 - **Theme Preference**: `ThemeProvider` (`src/theme/ThemeProvider.tsx`) persists `system | light | dark` in AsyncStorage and serves WCAG-compliant palettes into every screen.
 - **Dark = true AMOLED**: `Colors.dark` uses a pure-black `#000000` background, near-black surfaces (`#0C0C0E`), and a neon teal primary (`#2DD4BF`) with dark `onPrimary` (`#03211D`) text on fills. Shadows are replaced by 1px borders; the tab bar sits on pure black. The QR scanner uses fixed pure-black camera chrome in both modes.
 - **Signature elements**: deep-pine adherence hero panel (`hero` tokens), status-rail dose cards, pill date badge + avatar monogram header, glowing neon FABs.
+- **Domain object**: the **capsule** (with the pulse line) — the product's own shape, repeated at every scale: app icon, splash, empty and loading states, section dividers, deck hero. One object repeated reads as identity; a family of icons reads as stock.
+- **One accent colour**: neon teal `#2DD4BF` (dark) / deep teal `#0D9488` (light) for emphasis only — no arbitrary gradients.
 
 ### F. Inventory & Refill Alerts (offline)
 - Optional `inventoryCount`, `refillThreshold`, and `pharmacyPhone` per medicine.
